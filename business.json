@@ -1,0 +1,21 @@
+{
+  "campuscuts1": {
+    "name": "Campus Cuts Barbershop",
+    "hours": "Mon–Fri 10am–8pm, Sat 10am–6pm",
+    "services": "Haircut, Fade, Beard Trim",
+    "pricing": "Haircut $25, Fade $30, Beard Trim $15",
+    "location": "123 College Ave, Ithaca, NY",
+    "contact": "555-123-4567",
+    "faqs": "Q: Do you take walk-ins? A: Yes. Q: Do you take cards? A: Yes, we accept cash, card, and Apple Pay."
+  },
+  "downtown_dentist1": {
+    "name": "Downtown Dental Clinic",
+    "hours": "Mon–Thu 9am–5pm, Fri 9am–2pm",
+    "services": "Cleanings, Fillings, Whitening",
+    "pricing": "Cleaning $120, Whitening $300+",
+    "location": "500 Main St, Ithaca, NY",
+    "contact": "555-987-6543",
+    "faqs": "Q: Do you take insurance? A: Yes, most major plans. Q: Do you accept walk-ins? A: Emergencies only."
+  }
+}
+

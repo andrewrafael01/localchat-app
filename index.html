@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LocalChat AI · 24/7 Chatbots for Local Businesses</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #1a1a1a;
+      --bg-card: #242424;
+      --accent: #007aff;
+      --text: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --border: rgba(255, 255, 255, 0.08);
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    * { 
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo::before {
+      content: "AI";
+      color: white;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .nav-cta {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      font-size: 13px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .nav-cta:hover {
+      opacity: 0.9;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
+      gap: 48px;
+      align-items: center;
+      margin-bottom: 64px;
+    }
+
+    .hero-title {
+      font-size: 48px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .hero-title span {
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+    }
+
+    .hero-cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .btn-primary {
+      padding: 12px 24px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    .btn-ghost {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 15px;
+      text-decoration: none;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .hero-note {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .hero-card {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hero-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .hero-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .hero-card-tag {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(52, 199, 89, 0.3);
+      background: rgba(52, 199, 89, 0.1);
+      color: #34c759;
+    }
+
+    .hero-chat {
+      font-size: 13px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 16px;
+      background: var(--bg);
+      margin-bottom: 16px;
+    }
+
+    .hero-chat-line {
+      margin-bottom: 12px;
+    }
+
+    .hero-chat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-chat-bubble {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .hero-chat-bubble.user {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .hero-chat-bubble.bot {
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .hero-embed {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .hero-embed code {
+      font-size: 12px;
+      color: var(--accent);
+      font-family: 'Monaco', 'Menlo', monospace;
+    }
+
+    .hero-footer {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      padding: 32px;
+      font-size: 15px;
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .pricing-tag {
+      font-size: 11px;
+      color: #34c759;
+      background: rgba(52, 199, 89, 0.1);
+      border-color: rgba(52, 199, 89, 0.3);
+    }
+
+    .price {
+      font-size: 32px;
+      font-weight: 600;
+      margin: 8px 0;
+      color: var(--text);
+    }
+
+    .price span {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .price-list {
+      margin: 16px 0 0;
+      padding-left: 20px;
+      list-style: none;
+    }
+
+    .price-list li {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      position: relative;
+      padding-left: 16px;
+    }
+
+    .price-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .section-title {
+      font-size: 32px;
+      margin-bottom: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .section-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .grid-3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="nav">
+      <div class="brand">
+        <div class="logo"></div>
+        <div class="brand-text">
+          <div class="brand-name">LocalChat AI</div>
+          <div class="brand-sub">Instant answers for barbers, dentists & more</div>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#who">Who it's for</a>
+        <a href="#contact">Contact</a>
+        <a class="nav-cta" href="#contact">Get early access</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div>
+        <h1 class="hero-title">
+          Turn missed calls into booked <span>appointments</span>.
+        </h1>
+        <p class="hero-sub">
+          LocalChat AI is a 24/7 website chatbot trained only on your business info —
+          hours, pricing, FAQs — so it can answer questions and capture leads while
+          you’re cutting hair, seeing patients, or sleeping.
+        </p>
+        <div class="hero-badges">
+          <div class="badge">No coding for you or the business</div>
+          <div class="badge">Works with barbers, dentists, gyms, salons, & more</div>
+          <div class="badge">Less back-and-forth, more booked slots</div>
+        </div>
+        <div class="hero-cta-row">
+          <a class="btn-primary" href="#contact">Get on the waitlist</a>
+          <a class="btn-ghost" href="#demo">See live demo</a>
+        </div>
+        <div class="hero-note">
+          Drop a simple script on any site — we handle the AI, leads, and dashboard.
+        </div>
+      </div>
+
+      <aside class="hero-card" id="demo">
+        <div>
+          <div class="hero-card-top">
+            <div>
+              <div class="hero-card-title">CampusCuts Barbershop</div>
+              <div style="font-size:11px;color:var(--text-muted);">Student barber · Ithaca, NY</div>
+            </div>
+            <div class="hero-card-tag">Live demo</div>
+          </div>
+          <div class="hero-chat">
+            <div class="hero-chat-line">
+              <div class="hero-chat-label">Customer</div>
+              <div class="hero-chat-bubble user">
+                Hey, do you take walk-ins after 7pm?
+              </div>
+            </div>
+            <div class="hero-chat-line">
+              <div class="hero-chat-label">LocalChat AI</div>
+              <div class="hero-chat-bubble bot">
+                CampusCuts is open Mon–Fri from 10am–8pm and Sat 11am–6pm. We do take
+                walk-ins, but evenings fill up — we recommend booking ahead for after 7pm.
+              </div>
+            </div>
+            <div class="hero-chat-line">
+              <div class="hero-chat-label">Lead capture</div>
+              <div class="hero-chat-bubble bot">
+                I can send your name and email to the shop so they can confirm a time. What’s the best email to reach you?
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="hero-embed">
+            <div style="margin-bottom:4px;">Copy‑paste to install on any site:</div>
+            <code>&lt;script src="https://yourdomain.com/widget.js" data-business-id="campuscuts"&gt;&lt;/script&gt;</code>
+          </div>
+          <div class="hero-footer">
+            Owners log into a simple dashboard to edit hours, pricing, and see every lead.
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="how">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-sub">
+        Simple for you, simple for the business. No one needs to touch code or “train” a model manually.
+      </p>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="pill">Step 1</div>
+          <h3>Add a business</h3>
+          <p>
+            You plug in the basics: hours, services, pricing, location, contact info, and FAQs.
+            LocalChat AI uses only this data — nothing hallucinated.
+          </p>
+        </div>
+        <div class="card">
+          <div class="pill">Step 2</div>
+          <h3>Send them a snippet</h3>
+          <p>
+            The dashboard generates a one-line script for each business. They paste it into their
+            website, and the chatbot appears in the corner instantly.
+          </p>
+        </div>
+        <div class="card">
+          <div class="pill">Step 3</div>
+          <h3>Chat + leads roll in</h3>
+          <p>
+            Visitors ask questions, get instant answers, and drop their contact info.
+            The owner gets email notifications and a clean lead list in their dashboard.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <h2 class="section-title">Pricing that makes sense for small businesses</h2>
+      <p class="section-sub">
+        Start with a simple flat monthly price per business. You can change this as you learn what your market will pay.
+      </p>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="pill pricing-tag">Suggested</div>
+          <h3>Standard</h3>
+          <div class="price">$49<span>/month per location</span></div>
+          <ul class="price-list">
+            <li>Unlimited chats & leads</li>
+            <li>Single location</li>
+            <li>Owner dashboard access</li>
+            <li>Email notifications for new leads</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="pill">Starter</div>
+          <h3>First 3 clients</h3>
+          <div class="price">$0–29<span>/month</span></div>
+          <ul class="price-list">
+            <li>Discounted “founding client” pricing</li>
+            <li>Helps you collect testimonials and case studies</li>
+            <li>Perfect for your first barbershop, dentist, or gym</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="pill">Scale</div>
+          <h3>Multi-location</h3>
+          <div class="price">Custom<span>/multi‑location chains</span></div>
+          <ul class="price-list">
+            <li>Multi-location businesses</li>
+            <li>Priority support</li>
+            <li>Custom reporting & exports</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="who">
+      <h2 class="section-title">Who LocalChat AI is perfect for</h2>
+      <p class="section-sub">
+        Any local business that wastes hours every week answering the same questions.
+        You can niche down based on who you know or who’s around Cornell.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Barbers & salons</h3>
+          <p>
+            “What are your hours?”, “Do you take walk‑ins?”, “How much is a fade?” — LocalChat AI
+            handles the repeat questions and sends serious customers straight to the owner.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Dentists & clinics</h3>
+          <p>
+            Answer basic questions about insurance, hours, and new patients without touching anything PHI.
+            For anything clinical, the bot hands off to the front desk.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Gyms & fitness studios</h3>
+          <p>
+            Answer membership, class schedule, and day-pass questions in seconds. Capture leads
+            when someone’s browsing at 11:47pm and thinking about signing up.
+          </p>
+        </div>
+        <div class="card">
+          <h3>And more…</h3>
+          <p>
+            Tutors, nail salons, auto shops, real estate agents — if they answer the same
+            questions every day, LocalChat AI can give them time back.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2 class="section-title">Get on the early access list</h2>
+      <p class="section-sub">
+        You’re building this — so you control how you onboard your first users.
+        For now, you can use this section as a simple “DM / email me” CTA.
+      </p>
+      <div class="card">
+        <p style="margin-bottom:8px;">
+          Interested in trying LocalChat AI for your barbershop, clinic, or gym?
+        </p>
+        <p style="margin-bottom:8px;">
+          Reach out with your business name and website, and we’ll set up your chatbot and dashboard for you.
+        </p>
+        <p style="font-size:12px;color:var(--text-muted);margin:0;">
+          Replace this with your real contact info:<br />
+          <strong>Email:</strong> you@yourdomain.com<br />
+          <strong>Instagram:</strong> @yourhandle<br />
+          <strong>Location:</strong> Ithaca, NY
+        </p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>© {{current_year or "2025"}} LocalChat AI. Built for small businesses.</span>
+      <span>Demo only · Not collecting real data yet</span>
+    </footer>
+  </div>
+</body>
+</html>
