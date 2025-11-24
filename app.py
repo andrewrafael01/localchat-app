@@ -25,6 +25,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 from werkzeug.security import generate_password_hash, check_password_hash
+from openai import OpenAI
+
 
 import smtplib
 from email.message import EmailMessage
@@ -45,6 +47,9 @@ SMTP_USER = os.environ.get("SMTP_USER")
 SMTP_PASS = os.environ.get("SMTP_PASS")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER or "localchat@example.com")
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
+
+client = OpenAI()
+
 
 def send_email(to_email: str, subject: str, body: str):
     """Send an email if SMTP is configured, otherwise just print to console."""
@@ -1172,26 +1177,17 @@ FAQs (may be free text with Q&A pairs):
 When you respond, write in a natural, friendly tone and reference the business by name when helpful.
 """
 
-        resp = requests.post(
-            "http://localhost:11434/api/chat",
-            json={
-                "model": "phi3",
-                "stream": False,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message},
-                ],
-            },
-            timeout=60,
+        completion = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+            ],
+            max_tokens=300,
+            temperature=0.3,
         )
 
-        resp.raise_for_status()
-        ollama_data = resp.json()
-
-        reply_text = (
-            ollama_data.get("message", {}).get("content")
-            or "Sorry, I couldn't generate a reply."
-        )
+        reply_text = (completion.choices[0].message.content or "").strip() or "Sorry, I couldn't generate a reply."
 
         ts = datetime.datetime.now().isoformat()
         log_line = f"{ts} | {business_id} | USER: {user_message} | BOT: {reply_text}\n"
