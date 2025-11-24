@@ -48,7 +48,7 @@ SMTP_PASS = os.environ.get("SMTP_PASS")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER or "localchat@example.com")
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
 
-client = OpenAI()
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url="https://api.openai.com/v1")
 
 
 def send_email(to_email: str, subject: str, body: str):
@@ -1197,7 +1197,9 @@ When you respond, write in a natural, friendly tone and reference the business b
         return jsonify({"reply": reply_text})
 
     except Exception as e:
-        print("ERROR in /chat:", repr(e))
+        import traceback
+        traceback.print_exc()
+        print("ERROR in /chat:", type(e).__name__, repr(e))
         return jsonify({"reply": f"Server error: {e}"}), 500
 
 
