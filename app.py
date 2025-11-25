@@ -25,8 +25,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from openai import OpenAI
-
 
 import smtplib
 from email.message import EmailMessage
@@ -47,9 +45,6 @@ SMTP_USER = os.environ.get("SMTP_USER")
 SMTP_PASS = os.environ.get("SMTP_PASS")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER or "localchat@example.com")
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
-
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url="https://api.openai.com/v1")
-
 
 def send_email(to_email: str, subject: str, body: str):
     """Send an email if SMTP is configured, otherwise just print to console."""
@@ -1147,7 +1142,7 @@ def chat():
             return jsonify({"reply": "Business not found."}), 404
 
         system_prompt = f"""
-You are a helpful, concise AI assistant for the business \"{biz.name}\".
+You are a helpful, concise AI assistant for the business "{biz.name}".
 
 You MUST follow these rules:
 - Answer ONLY using the data provided below (Hours, Services, Pricing, Location, Contact, FAQs).
@@ -1177,30 +1172,52 @@ FAQs (may be free text with Q&A pairs):
 When you respond, write in a natural, friendly tone and reference the business by name when helpful.
 """
 
-        completion = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            return jsonify({"reply": "Server error: missing OPENAI_API_KEY on server."}), 500
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": "gpt-4.1-mini",
+            "messages": [
                 {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
+                {"role": "user", "content": user_message},
             ],
-            max_tokens=300,
-            temperature=0.3,
+            "temperature": 0.4,
+            "max_tokens": 400,
+        }
+
+        resp = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        reply_text = (
+            (data.get("choices") or [{}])[0]
+            .get("message", {})
+            .get("content")
+            or "Sorry, I couldn't generate a reply."
         )
 
-        reply_text = (completion.choices[0].message.content or "").strip() or "Sorry, I couldn't generate a reply."
-
         ts = datetime.datetime.now().isoformat()
-        log_line = f"{ts} | {business_id} | USER: {user_message} | BOT: {reply_text}\n"
+        log_line = f"{ts} | {business_id} | USER: {user_message} | BOT: {reply_text}
+"
         with open(CHAT_LOG_FILE, "a") as logf:
             logf.write(log_line)
 
         return jsonify({"reply": reply_text})
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print("ERROR in /chat:", type(e).__name__, repr(e))
-        return jsonify({"reply": f"Server error: {e}"}), 500
+        print("ERROR in /chat:", repr(e))
+        return jsonify({"reply": "Server error: something went wrong talking to the AI."}), 500
+
 
 
 @app.route("/lead", methods=["POST"])
