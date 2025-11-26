@@ -1124,6 +1124,10 @@ def api_business():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    """
+    Chat endpoint that calls OpenAI's Chat Completions API instead of a local Ollama server.
+    Expects JSON: { "business_id": "...", "message": "..." }
+    """
     try:
         data = request.get_json(force=True)
         business_id = (data.get("business_id") or "").strip()
@@ -1142,7 +1146,7 @@ def chat():
             return jsonify({"reply": "Business not found."}), 404
 
         system_prompt = f"""
-You are a helpful, concise AI assistant for the business "{biz.name}".
+You are a helpful, concise AI assistant for the business \"{biz.name}\".
 
 You MUST follow these rules:
 - Answer ONLY using the data provided below (Hours, Services, Pricing, Location, Contact, FAQs).
@@ -1174,50 +1178,52 @@ When you respond, write in a natural, friendly tone and reference the business b
 
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
-            return jsonify({"reply": "Server error: missing OPENAI_API_KEY on server."}), 500
+            return jsonify({"reply": "Server error: missing OPENAI_API_KEY on the server."}), 500
 
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "model": "gpt-4.1-mini",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message},
-            ],
-            "temperature": 0.4,
-            "max_tokens": 400,
-        }
-
-        resp = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=30,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-
-        reply_text = (
-            (data.get("choices") or [{}])[0]
-            .get("message", {})
-            .get("content")
-            or "Sorry, I couldn't generate a reply."
-        )
+        try:
+            resp = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "gpt-4.1-mini",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message},
+                    ],
+                    "temperature": 0.3,
+                },
+                timeout=60,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            reply_text = (
+                data.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                    .strip()
+            )
+            if not reply_text:
+                reply_text = "Sorry, I couldn't generate a reply."
+        except Exception as e:
+            print("ERROR calling OpenAI:", repr(e))
+            return jsonify({"reply": "Server error: something went wrong talking to the AI."}), 500
 
         ts = datetime.datetime.now().isoformat()
         log_line = f"{ts} | {business_id} | USER: {user_message} | BOT: {reply_text}\n"
-        with open(CHAT_LOG_FILE, "a") as logf:
-            logf.write(log_line)
+        try:
+            with open(CHAT_LOG_FILE, "a") as logf:
+                logf.write(log_line)
+        except Exception as e:
+            print("Error writing chat log:", repr(e))
 
         return jsonify({"reply": reply_text})
 
     except Exception as e:
         print("ERROR in /chat:", repr(e))
         return jsonify({"reply": "Server error: something went wrong talking to the AI."}), 500
-
-
 
 @app.route("/lead", methods=["POST"])
 def lead():
@@ -2011,435 +2017,400 @@ def admin():
 @app.route("/admin/businesses", methods=["GET", "POST"])
 @admin_required
 def admin_businesses():
+    """
+    Admin screen to view/create/edit businesses AND attach an owner login
+    (owner email + password) for each business.
+    """
     db = SessionLocal()
+    message = None
+    edit_biz = None
+    owner_email_val = ""
+
     try:
         if request.method == "POST":
-            db_id = (request.form.get("db_id") or "").strip()
+            action = request.form.get("action") or ""
             business_id = (request.form.get("business_id") or "").strip()
-            name = (request.form.get("name") or "").strip()
-            hours = (request.form.get("hours") or "").strip()
-            services = (request.form.get("services") or "").strip()
-            pricing = (request.form.get("pricing") or "").strip()
-            location = (request.form.get("location") or "").strip()
-            contact = (request.form.get("contact") or "").strip()
-            faqs = (request.form.get("faqs") or "").strip()
-            blurb = (request.form.get("blurb") or "").strip()
 
-            if not business_id or not name:
-                return redirect(url_for("admin_businesses"))
+            if action == "save":
+                name = (request.form.get("name") or "").strip()
+                hours = (request.form.get("hours") or "").strip()
+                services = (request.form.get("services") or "").strip()
+                pricing = (request.form.get("pricing") or "").strip()
+                location = (request.form.get("location") or "").strip()
+                contact = (request.form.get("contact") or "").strip()
+                faqs = (request.form.get("faqs") or "").strip()
+                blurb = (request.form.get("blurb") or "").strip()
 
-            if db_id:
-                biz = db.query(Business).filter(Business.id == int(db_id)).first()
-                if biz:
-                    biz.business_id = business_id
-                    biz.name = name
-                    biz.hours = hours
-                    biz.services = services
-                    biz.pricing = pricing
-                    biz.location = location
-                    biz.contact = contact
-                    biz.faqs = faqs
-                    biz.blurb = blurb
-            else:
-                biz = Business(
-                    business_id=business_id,
-                    name=name,
-                    hours=hours,
-                    services=services,
-                    pricing=pricing,
-                    location=location,
-                    contact=contact,
-                    faqs=faqs,
-                    blurb=blurb,
+                owner_email = (request.form.get("owner_email") or "").strip().lower()
+                owner_password = (request.form.get("owner_password") or "").strip()
+
+                if not business_id or not name:
+                    message = "Business ID and name are required."
+                else:
+                    biz = db.query(Business).filter(Business.business_id == business_id).first()
+                    if not biz:
+                        biz = Business(
+                            business_id=business_id,
+                            name=name,
+                            hours=hours,
+                            services=services,
+                            pricing=pricing,
+                            location=location,
+                            contact=contact,
+                            faqs=faqs,
+                            blurb=blurb,
+                        )
+                        db.add(biz)
+                        message = f"Created business '{business_id}'."
+                    else:
+                        biz.name = name
+                        biz.hours = hours
+                        biz.services = services
+                        biz.pricing = pricing
+                        biz.location = location
+                        biz.contact = contact
+                        biz.faqs = faqs
+                        biz.blurb = blurb
+                        message = f"Updated business '{business_id}'."
+
+                    # Handle owner login
+                    if owner_email:
+                        owner = (
+                            db.query(User)
+                            .filter(User.business_id == business_id, User.role == "business")
+                            .first()
+                        )
+                        if owner:
+                            owner.email = owner_email
+                            if owner_password:
+                                owner.password_hash = generate_password_hash(
+                                    owner_password, method="pbkdf2:sha256"
+                                )
+                        else:
+                            if owner_password:
+                                create_user(
+                                    db,
+                                    email=owner_email,
+                                    password=owner_password,
+                                    role="business",
+                                    business_id=business_id,
+                                )
+                        owner_email_val = owner_email
+
+                    db.commit()
+
+                    # Keep this biz selected after save
+                    edit_biz = biz
+
+            elif action == "delete":
+                del_id = (request.form.get("delete_business_id") or "").strip()
+                if del_id:
+                    biz = db.query(Business).filter(Business.business_id == del_id).first()
+                    if biz:
+                        db.delete(biz)
+                        # Also delete any owner users for this business
+                        db.query(User).filter(
+                            User.business_id == del_id, User.role == "business"
+                        ).delete()
+                        db.commit()
+                        message = f"Deleted business '{del_id}'."
+                edit_biz = None
+
+        # If GET or after POST, figure out which business to edit
+        if not edit_biz:
+            edit_id = (request.args.get("edit") or "").strip()
+            if edit_id:
+                edit_biz = (
+                    db.query(Business)
+                    .filter(Business.business_id == edit_id)
+                    .first()
                 )
-                db.add(biz)
 
-            db.commit()
-            return redirect(url_for("admin_businesses"))
+        if edit_biz:
+            owner = (
+                db.query(User)
+                .filter(User.business_id == edit_biz.business_id, User.role == "business")
+                .first()
+            )
+            if owner:
+                owner_email_val = owner.email
 
-        edit_id = (request.args.get("edit_id") or "").strip()
-        edit_biz = None
-        if edit_id:
-            edit_biz = db.query(Business).filter(Business.id == int(edit_id)).first()
-
-        all_biz = db.query(Business).order_by(Business.id).all()
-        user, _, _ = get_current_user()
-        email = user.email if user else "Unknown"
+        all_biz = db.query(Business).order_by(Business.name).all()
 
         html = """
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manage Businesses</title>
+  <title>Admin · Businesses</title>
   <style>
-    :root {
-      --bg: #1a1a1a;
-      --bg-card: #242424;
-      --accent: #007aff;
-      --text: #ffffff;
-      --text-muted: rgba(255, 255, 255, 0.6);
-      --border: rgba(255, 255, 255, 0.08);
-      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-font-smoothing: antialiased;
-    }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
       margin: 0;
-      padding: 40px 32px;
-      min-height: 100vh;
-      line-height: 1.5;
+      padding: 40px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background: #050505;
+      color: #f5f5f7;
     }
-
-    .container {
-      max-width: 1400px;
+    .shell {
+      max-width: 1100px;
       margin: 0 auto;
     }
-
     .top-bar {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 32px;
-      padding-bottom: 24px;
-      border-bottom: 1px solid var(--border-primary);
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .top-left h1 {
-      margin: 0 0 8px;
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .top-left p {
-      font-size: 14px;
-      color: var(--text-tertiary);
-      margin: 0;
-    }
-
-    .top-right {
-      font-size: 13px;
-      color: var(--text-tertiary);
-      display: flex;
       align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .top-right span {
-      padding: 8px 16px;
-      background: rgba(15, 22, 41, 0.6);
-      border-radius: 12px;
-      border: 1px solid var(--border-primary);
-    }
-
-    a {
-      color: var(--accent-secondary);
-      text-decoration: none;
-      font-weight: 500;
-      padding: 8px 16px;
-      border-radius: 12px;
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.2);
-      transition: all 0.2s ease;
-      display: inline-block;
-    }
-
-    a:hover {
-      background: rgba(99, 102, 241, 0.2);
-      border-color: rgba(99, 102, 241, 0.4);
-      transform: translateY(-1px);
-    }
-
-    .section {
       margin-bottom: 32px;
-      border-radius: 20px;
-      padding: 24px;
-      background: rgba(15, 22, 41, 0.6);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-primary);
-      box-shadow: var(--shadow-xl);
     }
-
-    .section h2 {
-      margin: 0 0 20px;
+    .title {
       font-size: 20px;
       font-weight: 600;
-      color: var(--text-primary);
-      letter-spacing: -0.01em;
     }
-
+    .pill {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0,122,255,0.18);
+      color: #0a84ff;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 24px;
+      align-items: flex-start;
+    }
+    .card {
+      background: #111111;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 24px 24px 28px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+    }
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 12px;
+    }
+    .sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 4px;
+    }
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      width: 100%;
+      background: #050505;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 9px 10px;
+      color: #f5f5f7;
+      font-size: 13px;
+      margin-bottom: 10px;
+      resize: vertical;
+    }
+    textarea {
+      min-height: 60px;
+    }
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #0a84ff;
+    }
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .btn-row {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: #0a84ff;
+      color: #fff;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: #f5f5f7;
+    }
+    .btn-danger {
+      background: #ff3b30;
+      color: #fff;
+    }
+    .tagline {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
+      margin-top: 6px;
     }
-
     th, td {
-      padding: 12px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
+      padding: 6px 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-
     th {
-      background: var(--bg);
-      color: var(--text-muted);
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      text-align: left;
+      color: rgba(255,255,255,0.6);
+      font-weight: 500;
     }
-
-    td {
-      color: var(--text);
-    }
-
     tr:hover td {
-      background: rgba(0, 122, 255, 0.05);
+      background: rgba(255,255,255,0.03);
     }
-
-    tr:last-child td {
-      border-bottom: none;
+    a.link {
+      color: #0a84ff;
+      text-decoration: none;
     }
-
-    input, textarea {
-      width: 100%;
-      padding: 12px 16px;
+    a.link:hover {
+      text-decoration: underline;
+    }
+    .message {
       margin-bottom: 16px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 15px;
-      font-family: inherit;
-      box-sizing: border-box;
-    }
-
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    label {
-      display: block;
       font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-
-    button {
-      border-radius: 12px;
-      border: none;
-      padding: 14px 24px;
-      background: var(--accent);
-      color: white;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .snippet-box {
-      font-size: 12px;
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px dashed var(--border);
-      background: var(--bg);
-      margin-top: 16px;
-      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    }
-
-    .snippet-box strong {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--text-muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    code {
-      font-size: 12px;
-      color: var(--accent);
-      word-break: break-all;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 48px 20px;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    @media (max-width: 768px) {
-      body {
-        padding: 20px 16px;
-      }
-
-      .top-bar {
-        flex-direction: column;
-      }
-
-      .section {
-        padding: 20px;
-        overflow-x: auto;
-      }
-
-      table {
-        font-size: 12px;
-      }
-
-      th, td {
-        padding: 8px 12px;
-      }
+      color: #30d158;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-  <div class="top-bar">
-      <div class="top-left">
-      <h1>Manage Businesses</h1>
-        <p>Create and update businesses and copy their embed code</p>
+  <div class="shell">
+    <div class="top-bar">
+      <div>
+        <div class="title">Admin · Businesses</div>
+        <div class="sub">Create and edit businesses and attach an owner login so they can use the dashboard.</div>
+      </div>
+      <div class="pill">LocalChat AI</div>
     </div>
-    <div class="top-right">
-      <span>Signed in as {{ email }} (admin)</span>
-      <a href="/admin">Admin dashboard</a>
-      <a href="/logout">Log out</a>
-    </div>
-  </div>
 
-  <div class="section">
-    <h2>Existing Businesses</h2>
-"""
-        if not all_biz:
-            html += '<div class="empty-state">No businesses yet.</div>'
-        else:
-            html += '<table><thead><tr><th>ID</th><th>Business ID</th><th>Name</th><th>Preview</th><th>Actions</th></tr></thead><tbody>'
-            for b in all_biz:
-                preview_url = f"/?id={b.business_id}"
-                snippet = (
-                    f'&lt;script src="{request.host_url.rstrip("/")}/widget.js" '
-                    f'data-business-id="{b.business_id}"&gt;&lt;/script&gt;'
-                )
-                html += (
-                    "<tr>"
-                    f"<td>{b.id}</td>"
-                    f"<td>{b.business_id}</td>"
-                    f"<td>{b.name}</td>"
-                    f'<td><a href="{preview_url}" target="_blank">Open</a></td>'
-                    f'<td><a href="/admin/businesses?edit_id={b.id}">Edit</a></td>'
-                    "</tr>"
-                    "<tr><td colspan='5'>"
-                    "<div class='snippet-box'>"
-                    "<strong>Embed snippet:</strong>"
-                    f"<code>{snippet}</code>"
-                    "</div>"
-                    "</td></tr>"
-                )
-            html += "</tbody></table>"
+    {% if message %}
+      <div class="message">{{ message }}</div>
+    {% endif %}
 
-        html += """
-  </div>
+    <div class="grid">
+      <div class="card">
+        <h2>{{ 'Edit business' if edit_biz else 'New business' }}</h2>
+        <form method="post">
+          <input type="hidden" name="action" value="save" />
+          <label>Business ID</label>
+          <input type="text" name="business_id" value="{{ edit_biz.business_id if edit_biz else '' }}" placeholder="campuscuts" />
 
-  <div class="section">
-    <h2>"""
-        html += "Edit Business" if edit_biz else "Add New Business"
-        html += """</h2>
-    <form method="post">
-"""
-        if edit_biz:
-            html += f'<input type="hidden" name="db_id" value="{edit_biz.id}"/>'
-            val_bid = edit_biz.business_id or ""
-            val_name = edit_biz.name or ""
-            val_hours = edit_biz.hours or ""
-            val_services = edit_biz.services or ""
-            val_pricing = edit_biz.pricing or ""
-            val_location = edit_biz.location or ""
-            val_contact = edit_biz.contact or ""
-            val_faqs = edit_biz.faqs or ""
-            val_blurb = edit_biz.blurb or ""
-        else:
-            val_bid = ""
-            val_name = ""
-            val_hours = ""
-            val_services = ""
-            val_pricing = ""
-            val_location = ""
-            val_contact = ""
-            val_faqs = ""
-            val_blurb = ""
+          <label>Business name</label>
+          <input type="text" name="name" value="{{ edit_biz.name if edit_biz else '' }}" placeholder="Campus Cuts" />
 
-        html += f"""
-      <label>Business ID (short string, used in URL ?id=...)</label>
-      <input name="business_id" value="{val_bid}" required />
+          <div class="row-2">
+            <div>
+              <label>Location</label>
+              <input type="text" name="location" value="{{ edit_biz.location if edit_biz else '' }}" placeholder="123 College Ave" />
+            </div>
+            <div>
+              <label>Contact</label>
+              <input type="text" name="contact" value="{{ edit_biz.contact if edit_biz else '' }}" placeholder="(555) 555-5555 or email" />
+            </div>
+          </div>
 
-      <label>Name</label>
-      <input name="name" value="{val_name}" required />
+          <label>Hours</label>
+          <textarea name="hours" placeholder="Mon–Fri 9–5&#10;Sat 10–2">{{ edit_biz.hours if edit_biz else '' }}</textarea>
 
-      <label>Blurb (short description shown in UI)</label>
-      <input name="blurb" value="{val_blurb}" />
+          <label>Services</label>
+          <textarea name="services" placeholder="Haircuts, fades, beard trims…">{{ edit_biz.services if edit_biz else '' }}</textarea>
 
-      <label>Hours</label>
-      <textarea name="hours">{val_hours}</textarea>
+          <label>Pricing</label>
+          <textarea name="pricing" placeholder="Adult cut $25&#10;Student cut $20…">{{ edit_biz.pricing if edit_biz else '' }}</textarea>
 
-      <label>Services</label>
-      <textarea name="services">{val_services}</textarea>
+          <label>FAQs</label>
+          <textarea name="faqs" placeholder="Q: Do you take walk-ins? A: Yes, but appointments get priority.">{{ edit_biz.faqs if edit_biz else '' }}</textarea>
 
-      <label>Pricing</label>
-      <textarea name="pricing">{val_pricing}</textarea>
+          <label>Short blurb (for the widget side panel)</label>
+          <textarea name="blurb" placeholder="One-line description for the chat embed.">{{ edit_biz.blurb if edit_biz else '' }}</textarea>
 
-      <label>Location</label>
-      <input name="location" value="{val_location}" />
+          <hr style="border-color: rgba(255,255,255,0.1); margin: 16px 0;" />
 
-      <label>Contact</label>
-      <input name="contact" value="{val_contact}" />
+          <h2>Owner login</h2>
+          <div class="sub">Optional: attach an owner email + password so they can log into the business dashboard.</div>
 
-      <label>FAQs (free text)</label>
-      <textarea name="faqs">{val_faqs}</textarea>
+          <label>Owner email</label>
+          <input type="email" name="owner_email" value="{{ owner_email }}" placeholder="owner@example.com" />
 
-      <button type="submit">Save Business</button>
-    </form>
+          <label>Owner password</label>
+          <input type="text" name="owner_password" placeholder="Set/reset password (leave blank to keep current)" />
+
+          <div class="btn-row">
+            <button class="btn btn-primary" type="submit">Save business</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>All businesses</h2>
+        <div class="tagline">Click a row to edit. Owners can log in at /login using their email and password.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Owner</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in businesses %}
+              {% set owner = owners_map.get(b.business_id) %}
+              <tr>
+                <td><a class="link" href="{{ url_for('admin_businesses') }}?edit={{ b.business_id }}">{{ b.business_id }}</a></td>
+                <td>{{ b.name }}</td>
+                <td>{{ owner.email if owner else '—' }}</td>
+                <td>
+                  <form method="post" style="margin: 0;">
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" name="delete_business_id" value="{{ b.business_id }}" />
+                    <button class="btn btn-danger" type="submit" onclick="return confirm('Delete this business?');">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </body>
 </html>
 """
-        return render_template_string(html, email=email)
+        owners = (
+            db.query(User)
+            .filter(User.role == "business", User.business_id.isnot(None))
+            .all()
+        )
+        owners_map = {o.business_id: o for o in owners}
+
+        return render_template_string(
+            html,
+            businesses=all_biz,
+            edit_biz=edit_biz,
+            message=message,
+            owner_email=owner_email_val,
+            owners_map=owners_map,
+        )
     finally:
         db.close()
-
-
-# ---------- Business owner dashboard ----------
-
 
 @app.route("/dashboard", methods=["GET", "POST"])
 @business_required
