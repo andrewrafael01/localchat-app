@@ -1207,7 +1207,7 @@ When you respond, write in a natural, friendly tone and reference the business b
         )
 
         ts = datetime.datetime.now().isoformat()
-        log_line = f"{ts} | {business_id} | USER: {user_message} | BOT: {reply_text}
+        log_line = f"{ts} | {business_id} | USER: {user_message} | BOT: {reply_text}\n"
 "
         with open(CHAT_LOG_FILE, "a") as logf:
             logf.write(log_line)
