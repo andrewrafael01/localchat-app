@@ -249,7 +249,7 @@ LANDING_HTML = """
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Cardholics AI – Chat widget for local businesses</title>
+  <title>NovuChat – Chat widget for local businesses</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { color-scheme: dark; }
@@ -277,10 +277,57 @@ LANDING_HTML = """
       z-index: 100;
     }
     .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-size: 18px;
       font-weight: 600;
       color: #e5e7eb;
       text-decoration: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-logo:hover {
+      transform: translateY(-1px);
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      animation: logoPulse 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: logoShine 3s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      }
+      50% { 
+        transform: scale(1.05); 
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+      }
+    }
+    @keyframes logoShine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
     }
     .nav-links {
       display: flex;
@@ -291,13 +338,41 @@ LANDING_HTML = """
       color: #9ca3af;
       text-decoration: none;
       font-size: 14px;
-      transition: color 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .nav a:hover { color: #e5e7eb; }
+    .nav a:hover { 
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
     .container {
       max-width: 1280px;
       margin: 0 auto;
       padding: 120px 32px 80px;
+      animation: fadeIn 0.6s ease-out;
     }
     .hero {
       display: grid;
@@ -305,6 +380,12 @@ LANDING_HTML = """
       gap: 48px;
       align-items: center;
       margin-bottom: 120px;
+    }
+    .hero-content {
+      animation: fadeInUp 0.8s ease-out;
+    }
+    .demo-chat {
+      animation: slideInRight 0.8s ease-out 0.2s both;
     }
     @media (max-width: 968px) {
       .hero { grid-template-columns: 1fr; gap: 40px; }
@@ -316,6 +397,11 @@ LANDING_HTML = """
       margin: 0 0 20px;
       font-weight: 700;
       letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: fadeInUp 1s ease-out 0.2s both;
     }
     @media (max-width: 640px) {
       .hero-content h1 { font-size: 40px; }
@@ -354,10 +440,28 @@ LANDING_HTML = """
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
       box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    .btn-primary:hover::before {
+      left: 100%;
     }
     .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.6);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
     }
     .btn-ghost {
       background: rgba(148, 163, 184, 0.1);
@@ -382,6 +486,11 @@ LANDING_HTML = """
       height: 520px;
       display: flex;
       flex-direction: column;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+    }
+    .demo-chat:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 72px rgba(0, 0, 0, 0.6);
     }
     .chat-header {
       padding: 16px 20px;
@@ -507,6 +616,16 @@ LANDING_HTML = """
       background: rgba(15, 23, 42, 0.4);
       border-radius: 16px;
       border: 1px solid rgba(148, 163, 184, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInUp 0.6s ease-out;
+    }
+    .step:nth-child(1) { animation-delay: 0.1s; }
+    .step:nth-child(2) { animation-delay: 0.2s; }
+    .step:nth-child(3) { animation-delay: 0.3s; }
+    .step:hover {
+      transform: translateY(-8px);
+      border-color: rgba(148, 163, 184, 0.3);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
     }
     .step-number {
       width: 48px;
@@ -520,6 +639,30 @@ LANDING_HTML = """
       font-size: 20px;
       font-weight: 600;
       margin: 0 auto 20px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .step-number::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    .step:hover .step-number {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+    }
+    .step:hover .step-number::before {
+      width: 100px;
+      height: 100px;
     }
     .step h3 {
       font-size: 20px;
@@ -550,7 +693,11 @@ LANDING_HTML = """
       text-align: center;
       flex: 1;
       min-width: 200px;
+      animation: fadeInUp 0.6s ease-out;
     }
+    .flow-item:nth-child(1) { animation-delay: 0.1s; }
+    .flow-item:nth-child(3) { animation-delay: 0.2s; }
+    .flow-item:nth-child(5) { animation-delay: 0.3s; }
     .flow-icon {
       width: 64px;
       height: 64px;
@@ -562,6 +709,12 @@ LANDING_HTML = """
       justify-content: center;
       font-size: 28px;
       margin: 0 auto 16px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .flow-item:hover .flow-icon {
+      transform: scale(1.1) rotate(5deg);
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.3), rgba(99, 102, 241, 0.3));
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
     }
     .flow-item h4 {
       font-size: 18px;
@@ -576,6 +729,17 @@ LANDING_HTML = """
     .flow-arrow {
       font-size: 24px;
       color: #6366f1;
+      animation: arrowPulse 2s ease-in-out infinite;
+    }
+    @keyframes arrowPulse {
+      0%, 100% { 
+        opacity: 0.6;
+        transform: translateX(0);
+      }
+      50% { 
+        opacity: 1;
+        transform: translateX(4px);
+      }
     }
     @media (max-width: 768px) {
       .flow-arrow { transform: rotate(90deg); }
@@ -584,7 +748,10 @@ LANDING_HTML = """
 </head>
 <body>
   <nav class="nav">
-    <a href="{{ url_for('index') }}" class="nav-logo">Cardholics AI</a>
+    <a href="{{ url_for('index') }}" class="nav-logo">
+      <div class="logo-icon">N</div>
+      <span>NovuChat</span>
+    </a>
     <div class="nav-links">
       <a href="{{ url_for('pricing') }}">Pricing</a>
       <a href="{{ url_for('login') }}">Login</a>
@@ -597,7 +764,7 @@ LANDING_HTML = """
       <div class="hero-content">
         <h1>Turn website visitors into booked appointments</h1>
         <div class="subtitle">
-          Cardholics AI sits on your site as a floating chat widget, answers common
+          NovuChat sits on your site as a floating chat widget, answers common
           questions, and sends warm leads straight to your inbox.
       </div>
         <div class="cta-row">
@@ -611,7 +778,7 @@ LANDING_HTML = """
         <div class="chat-header">
           <div class="chat-avatar">✂️</div>
           <div class="chat-header-info">
-            <div class="chat-header-name">Cardholics Barbershop</div>
+            <div class="chat-header-name">NovuChat Demo</div>
             <div class="chat-header-status">
               <span class="chat-status-dot"></span>
               <span>Online</span>
@@ -620,11 +787,11 @@ LANDING_HTML = """
         </div>
         <div class="chat-messages" id="demoMessages">
           <div class="chat-msg assistant">
-            <div class="chat-bubble">Hey! I'm the assistant for Cardholics Barbershop. How can I help you today?</div>
+            <div class="chat-bubble">Hey! I'm the assistant for NovuChat Demo. How can I help you today?</div>
             </div>
           </div>
         <div class="chat-input-area">
-          <input type="text" class="chat-input" placeholder="Try Cardholics AI on your site — this is a demo" disabled />
+          <input type="text" class="chat-input" placeholder="Try NovuChat on your site — this is a demo" disabled />
         </div>
         </div>
       </div>
@@ -723,7 +890,7 @@ PRICING_HTML = """
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Pricing · Cardholics AI</title>
+  <title>Pricing · NovuChat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -752,10 +919,57 @@ PRICING_HTML = """
       .top-nav { padding: 16px 20px; }
     }
     .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-size: 18px;
       font-weight: 600;
       color: #e5e7eb;
       text-decoration: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-logo:hover {
+      transform: translateY(-1px);
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      animation: logoPulse 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: logoShine 3s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      }
+      50% { 
+        transform: scale(1.05); 
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+      }
+    }
+    @keyframes logoShine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
     }
     .nav-links {
       display: flex;
@@ -766,15 +980,31 @@ PRICING_HTML = """
       color: #9ca3af;
       text-decoration: none;
       font-size: 14px;
-      transition: color 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .nav-links a:hover {
       color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 120px 32px 80px;
+      animation: fadeIn 0.6s ease-out;
     }
     @media (max-width: 640px) {
       .container { padding: 100px 24px 60px; }
@@ -782,12 +1012,17 @@ PRICING_HTML = """
     .page-header {
       text-align: center;
       margin-bottom: 64px;
+      animation: fadeInUp 0.8s ease-out;
     }
     .page-header h1 {
       font-size: 48px;
       font-weight: 700;
       margin: 0 0 16px;
       letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     @media (max-width: 640px) {
       .page-header h1 { font-size: 36px; }
@@ -813,12 +1048,31 @@ PRICING_HTML = """
       border-radius: 20px;
       border: 1px solid rgba(148, 163, 184, 0.2);
       padding: 32px 24px;
-      transition: all 0.3s;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInUp 0.6s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.05), transparent);
+      transition: left 0.6s;
+    }
+    .card:hover::before {
+      left: 100%;
     }
     .card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(148, 163, 184, 0.3);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      transform: translateY(-8px) scale(1.02);
+      border-color: rgba(148, 163, 184, 0.4);
+      box-shadow: 0 16px 48px rgba(79, 70, 229, 0.3);
     }
     .plan {
       font-size: 16px;
@@ -871,18 +1125,39 @@ PRICING_HTML = """
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       margin-top: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    .btn:hover::before {
+      left: 100%;
     }
     .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.6);
+    }
+    .btn:active {
+      transform: translateY(0);
     }
   </style>
 </head>
 <body>
   <nav class="top-nav">
-    <a href="{{ url_for('index') }}" class="nav-logo">Cardholics AI</a>
+    <a href="{{ url_for('index') }}" class="nav-logo">
+      <div class="logo-icon">N</div>
+      <span>NovuChat</span>
+    </a>
     <div class="nav-links">
       <a href="{{ url_for('index') }}">Home</a>
       <a href="{{ url_for('login') }}">Login</a>
@@ -941,7 +1216,7 @@ LOGIN_HTML = """
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Login · Cardholics AI</title>
+  <title>Login · NovuChat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -1075,7 +1350,7 @@ LOGIN_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">Cardholics AI</a>
+      <a href="{{ url_for('index') }}">NovuChat</a>
     </div>
     <h1>Welcome back</h1>
     <div class="sub">Sign in to manage your chat widget and leads</div>
@@ -1109,7 +1384,7 @@ SIGNUP_HTML = """
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Sign up · Cardholics AI</title>
+  <title>Sign up · NovuChat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -1262,10 +1537,10 @@ SIGNUP_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">Cardholics AI</a>
+      <a href="{{ url_for('index') }}">NovuChat</a>
     </div>
     <h1>Create your account</h1>
-    <div class="sub">Set up Cardholics AI for your business. No card required during beta.</div>
+    <div class="sub">Set up NovuChat for your business. No card required during beta.</div>
 
     {% if message %}
       <div class="msg {{ 'msg-error' if error else 'msg-ok' }}">{{ message }}</div>
@@ -1339,7 +1614,7 @@ FORGOT_PASSWORD_HTML = """
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Reset password · Cardholics AI</title>
+  <title>Reset password · NovuChat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -1464,7 +1739,7 @@ FORGOT_PASSWORD_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">Cardholics AI</a>
+      <a href="{{ url_for('index') }}">NovuChat</a>
     </div>
     <h1>Reset your password</h1>
     <div class="sub">Enter your email and we'll send you a reset link</div>
@@ -1492,7 +1767,7 @@ RESET_PASSWORD_HTML = """
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Choose new password · Cardholics AI</title>
+  <title>Choose new password · NovuChat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -1633,7 +1908,7 @@ RESET_PASSWORD_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">Cardholics AI</a>
+      <a href="{{ url_for('index') }}">NovuChat</a>
     </div>
     <h1>Choose a new password</h1>
     <div class="sub">Enter a new password for your account</div>
@@ -1666,7 +1941,7 @@ DASHBOARD_HTML = """
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard · Cardholics AI</title>
+  <title>Dashboard · NovuChat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -1690,10 +1965,71 @@ DASHBOARD_HTML = """
       .top-nav { padding: 16px 20px; }
     }
     .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-size: 18px;
       font-weight: 600;
       color: #e5e7eb;
       text-decoration: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-logo:hover {
+      transform: translateY(-1px);
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      animation: logoPulse 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: logoShine 3s ease-in-out infinite;
+    }
+    @keyframes logoPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      }
+      50% { 
+        transform: scale(1.05); 
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+      }
+    }
+    @keyframes logoShine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .nav-user {
       display: flex;
@@ -1709,22 +2045,32 @@ DASHBOARD_HTML = """
     .nav-user a:hover {
       color: #e5e7eb;
     }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
     .container {
       max-width: 1080px;
       margin: 0 auto;
       padding: 40px 32px;
+      animation: fadeIn 0.6s ease-out;
     }
     @media (max-width: 640px) {
       .container { padding: 32px 20px; }
     }
     .page-header {
       margin-bottom: 32px;
+      animation: fadeInUp 0.8s ease-out;
     }
     .page-header h1 {
       font-size: 32px;
       font-weight: 700;
       margin: 0 0 8px;
       letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     .page-header .subtitle {
       font-size: 16px;
@@ -1737,6 +2083,30 @@ DASHBOARD_HTML = """
       border: 1px solid rgba(148, 163, 184, 0.2);
       padding: 24px;
       margin-bottom: 24px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: fadeInUp 0.6s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.05), transparent);
+      transition: left 0.6s;
+    }
+    .card:hover::before {
+      left: 100%;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(148, 163, 184, 0.3);
+      box-shadow: 0 12px 32px rgba(79, 70, 229, 0.2);
     }
     .card-title {
       font-size: 18px;
@@ -1781,11 +2151,16 @@ DASHBOARD_HTML = """
       color: #818cf8;
       font-size: 12px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .copy-btn:hover {
       background: rgba(79, 70, 229, 0.3);
       border-color: rgba(79, 70, 229, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    .copy-btn:active {
+      transform: translateY(0);
     }
     .card p {
       color: #9ca3af;
@@ -1834,7 +2209,10 @@ DASHBOARD_HTML = """
 </head>
 <body>
   <nav class="top-nav">
-    <a href="{{ url_for('index') }}" class="nav-logo">Cardholics AI</a>
+    <a href="{{ url_for('index') }}" class="nav-logo">
+      <div class="logo-icon">N</div>
+      <span>NovuChat</span>
+    </a>
     <div class="nav-user">
       <a href="{{ url_for('logout') }}">Logout</a>
     </div>
@@ -2296,7 +2674,7 @@ def signup():
                     error = False
 
                     if ADMIN_EMAIL:
-                        subject = "New Cardholics AI signup"
+                        subject = "New NovuChat signup"
                         body = (
                             f"Owner: {owner_name}\n"
                             f"Email: {email}\n"
@@ -2367,15 +2745,15 @@ def forgot_password():
                 base_url = request.url_root.rstrip("/")
                 reset_link = f"{base_url}{url_for('reset_password')}?token={token}"
 
-                subject = "Reset your Cardholics AI password"
+                subject = "Reset your NovuChat password"
                 body = (
-                    "You requested a password reset for your Cardholics AI account.\n\n"
+                    "You requested a password reset for your NovuChat account.\n\n"
                     f"Click this link to choose a new password:\n{reset_link}\n\n"
                     "This link will expire in 1 hour. If you didn't request this, you can ignore this email."
                 )
                 send_email(user.email, subject, body)
-        finally:
-            db.close()
+    finally:
+        db.close()
         message = "If an account exists for that email, you'll receive a reset link shortly."
 
     return render_template_string(FORGOT_PASSWORD_HTML, message=message)
@@ -2431,7 +2809,7 @@ def dashboard():
     user, role, business_id = get_current_user()
     db = get_db()
     try:
-        biz = db.query(Business).filter(Business.business_id == business_id).first()
+            biz = db.query(Business).filter(Business.business_id == business_id).first()
         leads = (
             db.query(Lead)
             .filter(Lead.business_id == business_id)
@@ -2474,9 +2852,9 @@ def admin_approve(user_id):
         u.is_active = True
         db.commit()
 
-        subject = "Your Cardholics AI account is approved"
+        subject = "Your NovuChat account is approved"
         body = (
-            "Your Cardholics AI account has been approved.\n\n"
+            "Your NovuChat account has been approved.\n\n"
             "You can now log in and access your dashboard.\n\n"
             "Login here: /login"
         )
@@ -2553,7 +2931,7 @@ FAQs:
 
         if not OPENAI_API_KEY:
             reply_text = "AI is not configured yet."
-        else:
+    else:
             resp = requests.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers={
@@ -2622,7 +3000,7 @@ def lead():
 
         subject = f"New lead from {biz.name}"
         body = (
-            f"You received a new lead from your Cardholics AI widget.\n\n"
+            f"You received a new lead from your NovuChat widget.\n\n"
             f"Name: {name}\n"
             f"Email: {email}\n"
             f"Phone: {phone}\n\n"
