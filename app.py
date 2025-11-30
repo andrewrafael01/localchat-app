@@ -253,154 +253,466 @@ LANDING_HTML = """
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background:
-        radial-gradient(circle at top, rgba(37,99,235,0.3) 0, transparent 55%),
-        radial-gradient(circle at bottom right, rgba(236,72,153,0.2) 0, transparent 50%),
-        #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      padding: 0;
     }
     .nav {
-      position: absolute;
-      top: 18px;
-      right: 24px;
-      font-size: 13px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 32px;
+      background: rgba(2, 6, 23, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e5e7eb;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
     }
     .nav a {
       color: #9ca3af;
       text-decoration: none;
-      margin-left: 14px;
-    }
-    .nav a:hover { text-decoration: underline; }
-    .shell {
-      width: 100%;
-      max-width: 960px;
-      display: grid;
-      grid-template-columns: minmax(0,1.2fr) minmax(0,1fr);
-      gap: 24px;
-    }
-    @media (max-width: 840px) { .shell { grid-template-columns: minmax(0,1fr); } }
-    .hero { padding: 20px 18px; }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.6);
-      background: rgba(15,23,42,0.9);
-      margin-bottom: 10px;
-      color: #9ca3af;
-    }
-    h1 {
-      font-size: 32px;
-      line-height: 1.2;
-      margin: 0 0 10px;
-    }
-    .hero-sub {
       font-size: 14px;
+      transition: color 0.2s;
+    }
+    .nav a:hover { color: #e5e7eb; }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 120px 32px 80px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      margin-bottom: 120px;
+    }
+    @media (max-width: 968px) {
+      .hero { grid-template-columns: 1fr; gap: 40px; }
+      .container { padding: 100px 24px 60px; }
+    }
+    .hero-content h1 {
+      font-size: 56px;
+      line-height: 1.1;
+      margin: 0 0 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    @media (max-width: 640px) {
+      .hero-content h1 { font-size: 40px; }
+    }
+    .hero-content .subtitle {
+      font-size: 20px;
       color: #9ca3af;
-      max-width: 460px;
-      margin-bottom: 18px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 640px) {
+      .hero-content .subtitle { font-size: 16px; }
     }
     .cta-row {
       display: flex;
+      gap: 12px;
       flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .btn {
-      border-radius: 999px;
+      border-radius: 12px;
       border: none;
-      padding: 10px 18px;
+      padding: 14px 28px;
       font-family: inherit;
-      font-size: 14px;
+      font-size: 15px;
+      font-weight: 500;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       text-decoration: none;
+      transition: all 0.2s;
     }
     .btn-primary {
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
     }
     .btn-ghost {
-      background: transparent;
+      background: rgba(148, 163, 184, 0.1);
       color: #e5e7eb;
-      border: 1px solid rgba(148,163,184,0.5);
+      border: 1px solid rgba(148, 163, 184, 0.2);
     }
-    .tiny { font-size: 11px; color: #6b7280; }
-    .panel {
-      background: rgba(15,23,42,0.98);
+    .btn-ghost:hover {
+      background: rgba(148, 163, 184, 0.15);
+      border-color: rgba(148, 163, 184, 0.3);
+    }
+    .hero-note {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .demo-chat {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
       border-radius: 20px;
-      border: 1px solid rgba(148,163,184,0.45);
-      box-shadow: 0 26px 80px rgba(15,23,42,1);
-      padding: 16px 16px 18px;
-      font-size: 13px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      height: 520px;
+      display: flex;
+      flex-direction: column;
     }
-    .plan-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-    .price { font-size: 24px; font-weight: 600; margin: 4px 0; }
-    .price span {
-      font-size: 13px;
-      color: #9ca3af;
-      font-weight: 400;
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.4);
     }
-    ul {
-      list-style: none;
-      padding-left: 0;
-      margin: 10px 0 14px;
-      color: #9ca3af;
+    .chat-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .chat-header-info {
+      flex: 1;
+    }
+    .chat-header-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .chat-header-status {
       font-size: 12px;
+      color: #22c55e;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    li::before { content: "• "; color: #6366f1; }
+    .chat-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .chat-msg {
+      display: flex;
+      gap: 8px;
+      max-width: 85%;
+    }
+    .chat-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+    .chat-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .chat-msg.assistant .chat-bubble {
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+    }
+    .chat-msg.user .chat-bubble {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #f9fafb;
+    }
+    .chat-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .chat-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.6);
+      color: #9ca3af;
+      font-size: 14px;
+      font-family: inherit;
+      pointer-events: none;
+    }
+    .how-it-works {
+      margin-bottom: 120px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    @media (max-width: 640px) {
+      .section-title { font-size: 32px; }
+    }
+    .section-subtitle {
+      text-align: center;
+      font-size: 18px;
+      color: #9ca3af;
+      margin-bottom: 64px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-bottom: 80px;
+    }
+    @media (max-width: 968px) {
+      .steps { grid-template-columns: 1fr; gap: 24px; }
+    }
+    .step {
+      text-align: center;
+      padding: 32px 24px;
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 auto 20px;
+    }
+    .step h3 {
+      font-size: 20px;
+      margin: 0 0 12px;
+      font-weight: 600;
+    }
+    .step p {
+      font-size: 15px;
+      color: #9ca3af;
+      line-height: 1.6;
+      margin: 0;
+    }
+    .flow-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding: 48px;
+      background: rgba(15, 23, 42, 0.3);
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    @media (max-width: 768px) {
+      .flow-visual { flex-direction: column; }
+    }
+    .flow-item {
+      text-align: center;
+      flex: 1;
+      min-width: 200px;
+    }
+    .flow-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(99, 102, 241, 0.2));
+      border: 1px solid rgba(79, 70, 229, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 16px;
+    }
+    .flow-item h4 {
+      font-size: 18px;
+      margin: 0 0 8px;
+      font-weight: 600;
+    }
+    .flow-item p {
+      font-size: 14px;
+      color: #9ca3af;
+      margin: 0;
+    }
+    .flow-arrow {
+      font-size: 24px;
+      color: #6366f1;
+    }
+    @media (max-width: 768px) {
+      .flow-arrow { transform: rotate(90deg); }
+    }
   </style>
 </head>
 <body>
-  <div class="nav">
-    <a href="{{ url_for('login') }}">Login</a>
-    <a href="{{ url_for('signup') }}">Sign up</a>
-  </div>
-  <div class="shell">
+  <nav class="nav">
+    <a href="{{ url_for('index') }}" class="nav-logo">Cardholics AI</a>
+    <div class="nav-links">
+      <a href="{{ url_for('pricing') }}">Pricing</a>
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('signup') }}" class="btn btn-primary" style="padding: 8px 20px; font-size: 14px;">Sign up</a>
+        </div>
+  </nav>
+
+  <div class="container">
     <div class="hero">
-      <div class="badge">
-        <span>⚡</span> AI chat widget for local shops & services
+      <div class="hero-content">
+        <h1>Turn website visitors into booked appointments</h1>
+        <div class="subtitle">
+          Cardholics AI sits on your site as a floating chat widget, answers common
+          questions, and sends warm leads straight to your inbox.
       </div>
-      <h1>Turn website visitors into booked appointments.</h1>
-      <div class="hero-sub">
-        Cardholics AI sits on your site as a floating chat bubble, answers common
-        questions, and sends warm leads straight to your inbox.
-      </div>
-      <div class="cta-row">
-        <a href="{{ url_for('signup') }}" class="btn btn-primary">Get started free</a>
-        <a href="{{ url_for('pricing') }}" class="btn btn-ghost">View plans</a>
-      </div>
-      <div class="tiny">No code required. Copy–paste one line of script.</div>
+        <div class="cta-row">
+          <a href="{{ url_for('signup') }}" class="btn btn-primary">Get started free</a>
+          <a href="{{ url_for('pricing') }}" class="btn btn-ghost">View plans</a>
+        </div>
+        <div class="hero-note">No code required. Copy–paste one line of script.</div>
     </div>
-    <div class="panel">
-      <div class="plan-title">Starter plan</div>
-      <div class="price">$0 <span>/ beta</span></div>
-      <ul>
-        <li>1 website</li>
-        <li>1 chat widget</li>
-        <li>Up to 500 messages / month</li>
-        <li>Leads emailed instantly</li>
-      </ul>
-      <a href="{{ url_for('signup', plan='starter') }}" class="btn btn-primary" style="width:100%; justify-content:center;">
-        Choose Starter
-      </a>
+
+      <div class="demo-chat">
+        <div class="chat-header">
+          <div class="chat-avatar">✂️</div>
+          <div class="chat-header-info">
+            <div class="chat-header-name">Cardholics Barbershop</div>
+            <div class="chat-header-status">
+              <span class="chat-status-dot"></span>
+              <span>Online</span>
+          </div>
+          </div>
+        </div>
+        <div class="chat-messages" id="demoMessages">
+          <div class="chat-msg assistant">
+            <div class="chat-bubble">Hey! I'm the assistant for Cardholics Barbershop. How can I help you today?</div>
+            </div>
+          </div>
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" placeholder="Try Cardholics AI on your site — this is a demo" disabled />
+        </div>
+        </div>
+      </div>
+
+    <div class="how-it-works">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-subtitle">Get started in three simple steps</p>
+      
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Copy a script snippet</h3>
+          <p>We generate a one-line embed code for your business. No technical knowledge needed.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Paste on your site</h3>
+          <p>Add the script to your website. The chat widget appears instantly in the corner.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Get leads in your inbox</h3>
+          <p>Visitors chat, ask questions, and leave their info. You get notified immediately.</p>
+        </div>
+          </div>
+
+      <div class="flow-visual">
+        <div class="flow-item">
+          <div class="flow-icon">💬</div>
+          <h4>Floating chat widget</h4>
+          <p>Appears on your website</p>
+          </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">
+          <div class="flow-icon">🤖</div>
+          <h4>Answers questions</h4>
+          <p>24/7 AI assistant</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">
+          <div class="flow-icon">📧</div>
+          <h4>Sends leads to inbox</h4>
+          <p>Instant notifications</p>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script>
+    (function() {
+      const messages = [
+        { text: "What are your hours?", user: true, delay: 2000 },
+        { text: "We're open Monday through Friday 9am-7pm, Saturday 10am-5pm, and closed Sundays. Walk-ins welcome!", user: false, delay: 3000 },
+        { text: "How much for a fade?", user: true, delay: 4000 },
+        { text: "A classic fade is $35. We also offer skin fades for $40. Would you like to book an appointment?", user: false, delay: 5000 },
+        { text: "Yes, can I book for tomorrow at 2pm?", user: true, delay: 6000 },
+        { text: "I'd be happy to help you book! Could you share your name and email so I can send you a confirmation?", user: false, delay: 7000 }
+      ];
+
+      const messagesEl = document.getElementById('demoMessages');
+      let currentIndex = 0;
+
+      function addMessage(text, isUser) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg ' + (isUser ? 'user' : 'assistant');
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+      bubble.textContent = text;
+        msgDiv.appendChild(bubble);
+        messagesEl.appendChild(msgDiv);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function showNextMessage() {
+        if (currentIndex >= messages.length) return;
+        const msg = messages[currentIndex];
+        setTimeout(() => {
+          addMessage(msg.text, msg.user);
+          currentIndex++;
+          if (currentIndex < messages.length) {
+            showNextMessage();
+          }
+        }, msg.delay);
+      }
+
+      setTimeout(showNextMessage, 1500);
+    })();
+  </script>
 </body>
 </html>
 """
@@ -414,49 +726,144 @@ PRICING_HTML = """
   <title>Pricing · Cardholics AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
-      display: flex;
-      justify-content: center;
-      padding: 32px 16px;
     }
-    .shell { width: 100%; max-width: 960px; }
-    h1 { margin: 0 0 6px; font-size: 24px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 32px;
+      background: rgba(2, 6, 23, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      z-index: 100;
+    }
+    @media (max-width: 640px) {
+      .top-nav { padding: 16px 20px; }
+    }
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e5e7eb;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .nav-links a {
+      color: #9ca3af;
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: #e5e7eb;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 120px 32px 80px;
+    }
+    @media (max-width: 640px) {
+      .container { padding: 100px 24px 60px; }
+    }
+    .page-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .page-header h1 {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 0 0 16px;
+      letter-spacing: -0.02em;
+    }
+    @media (max-width: 640px) {
+      .page-header h1 { font-size: 36px; }
+    }
+    .page-header .sub {
+      font-size: 18px;
+      color: #9ca3af;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 16px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
     }
-    @media (max-width: 900px) { .grid { grid-template-columns: minmax(0,1fr); } }
+    @media (max-width: 968px) {
+      .grid { grid-template-columns: 1fr; }
+    }
     .card {
-      background: #020617;
-      border-radius: 18px;
-      border: 1px solid rgba(148,163,184,0.45);
-      padding: 16px 16px 18px;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 32px 24px;
+      transition: all 0.3s;
     }
-    .plan { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-    .price { font-size: 22px; font-weight: 600; margin: 4px 0; }
-    .price span { font-size: 13px; color: #9ca3af; font-weight: 400; }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(148, 163, 184, 0.3);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+    .plan {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #e5e7eb;
+    }
+    .price {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 12px 0;
+      letter-spacing: -0.02em;
+    }
+    .price span {
+      font-size: 16px;
+      color: #9ca3af;
+      font-weight: 400;
+    }
     ul {
       list-style: none;
-      padding-left: 0;
-      margin: 10px 0 14px;
+      padding: 0;
+      margin: 24px 0;
       color: #9ca3af;
-      font-size: 12px;
+      font-size: 14px;
+      line-height: 1.8;
     }
-    li::before { content: "• "; color: #6366f1; }
+    li {
+      padding-left: 20px;
+      position: relative;
+    }
+    li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #6366f1;
+      font-weight: 600;
+    }
     .btn {
       width: 100%;
-      border-radius: 999px;
+      border-radius: 12px;
       border: none;
-      padding: 9px 14px;
+      padding: 14px 24px;
       font-family: inherit;
-      font-size: 13px;
+      font-size: 15px;
+      font-weight: 500;
       cursor: pointer;
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
@@ -464,35 +871,30 @@ PRICING_HTML = """
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s;
+      margin-top: 8px;
     }
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      font-size: 13px;
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
     }
-    .top-nav a {
-      color: #9ca3af;
-      text-decoration: none;
-      margin-left: 14px;
-    }
-    .top-nav a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="top-nav">
-      <div>
-        <a href="{{ url_for('index') }}">← Back to home</a>
-      </div>
-      <div>
-        <a href="{{ url_for('login') }}">Login</a>
-        <a href="{{ url_for('signup') }}">Sign up</a>
-      </div>
+  <nav class="top-nav">
+    <a href="{{ url_for('index') }}" class="nav-logo">Cardholics AI</a>
+    <div class="nav-links">
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('signup') }}" class="btn" style="padding: 8px 20px; font-size: 14px; margin: 0;">Sign up</a>
     </div>
-    <h1>Simple pricing for growing local businesses</h1>
-    <div class="sub">Start on the free beta plan. Upgrade later when you're ready.</div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>Simple pricing for growing local businesses</h1>
+      <div class="sub">Start on the free beta plan. Upgrade later when you're ready.</div>
+    </div>
     <div class="grid">
       <div class="card">
         <div class="plan">Starter</div>
@@ -542,11 +944,12 @@ LOGIN_HTML = """
   <title>Login · Cardholics AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
       display: flex;
       align-items: center;
@@ -555,65 +958,127 @@ LOGIN_HTML = """
     }
     .card {
       width: 100%;
-      max-width: 420px;
-      background: #020617;
+      max-width: 440px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
       border-radius: 20px;
-      border: 1px solid rgba(148,163,184,0.45);
-      padding: 22px 22px 24px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 40px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-    h1 { margin: 0 0 6px; font-size: 20px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    @media (max-width: 640px) {
+      .card { padding: 32px 24px; }
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo a {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e5e7eb;
+      text-decoration: none;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      font-size: 15px;
+      color: #9ca3af;
+      margin-bottom: 32px;
+      text-align: center;
+      line-height: 1.5;
+    }
     label {
       display: block;
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 4px;
+      font-size: 14px;
+      color: #e5e7eb;
+      margin-bottom: 8px;
+      font-weight: 500;
     }
     input {
       width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.6);
       color: #e5e7eb;
-      font-size: 13px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
+      font-size: 15px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
       font-family: inherit;
+      transition: all 0.2s;
     }
     input:focus {
       outline: none;
       border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    input::placeholder {
+      color: #6b7280;
     }
     .btn {
       width: 100%;
-      border-radius: 999px;
+      border-radius: 12px;
       border: none;
-      padding: 9px 14px;
+      padding: 14px 24px;
       font-family: inherit;
-      font-size: 14px;
-      margin-top: 4px;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
       cursor: pointer;
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
+      transition: all 0.2s;
     }
-    .msg { font-size: 12px; margin-bottom: 8px; color: #f97373; }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+    .msg {
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(249, 115, 115, 0.1);
+      border: 1px solid rgba(249, 115, 115, 0.2);
+      color: #fca5a5;
+    }
     .foot {
-      margin-top: 10px;
-      font-size: 12px;
+      margin-top: 24px;
+      font-size: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
+      text-align: center;
     }
-    a { color: #818cf8; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    .foot > * {
+      flex: 1;
+      min-width: 120px;
+    }
+    a {
+      color: #818cf8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: #a5b4fc;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="card">
+    <div class="logo">
+      <a href="{{ url_for('index') }}">Cardholics AI</a>
+    </div>
     <h1>Welcome back</h1>
-    <div class="sub">Sign in to manage your chat widget and leads.</div>
+    <div class="sub">Sign in to manage your chat widget and leads</div>
 
     {% if error %}
       <div class="msg">{{ error }}</div>
@@ -621,10 +1086,10 @@ LOGIN_HTML = """
 
     <form method="post">
       <label>Email</label>
-      <input type="email" name="email" required />
+      <input type="email" name="email" placeholder="you@example.com" required autocomplete="email" />
 
       <label>Password</label>
-      <input type="password" name="password" required />
+      <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
 
       <button class="btn" type="submit">Log in</button>
     </form>
@@ -647,11 +1112,12 @@ SIGNUP_HTML = """
   <title>Sign up · Cardholics AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
       display: flex;
       align-items: center;
@@ -660,74 +1126,144 @@ SIGNUP_HTML = """
     }
     .card {
       width: 100%;
-      max-width: 520px;
-      background: #020617;
+      max-width: 600px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
       border-radius: 20px;
-      border: 1px solid rgba(148,163,184,0.45);
-      padding: 22px 22px 24px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 40px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-    h1 { margin: 0 0 6px; font-size: 20px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    @media (max-width: 640px) {
+      .card { padding: 32px 24px; }
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo a {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e5e7eb;
+      text-decoration: none;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      font-size: 15px;
+      color: #9ca3af;
+      margin-bottom: 32px;
+      text-align: center;
+      line-height: 1.5;
+    }
     label {
       display: block;
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 4px;
+      font-size: 14px;
+      color: #e5e7eb;
+      margin-bottom: 8px;
+      font-weight: 500;
     }
     input, textarea, select {
       width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.6);
       color: #e5e7eb;
-      font-size: 13px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
+      font-size: 15px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
       font-family: inherit;
       box-sizing: border-box;
+      transition: all 0.2s;
     }
-    textarea { min-height: 70px; resize: vertical; }
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
     input:focus, textarea:focus, select:focus {
       outline: none;
       border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    input::placeholder, textarea::placeholder {
+      color: #6b7280;
     }
     .row {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .row { grid-template-columns: 1fr; }
     }
     .btn {
       width: 100%;
-      border-radius: 999px;
+      border-radius: 12px;
       border: none;
-      padding: 9px 14px;
+      padding: 14px 24px;
       font-family: inherit;
-      font-size: 14px;
-      margin-top: 4px;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
       cursor: pointer;
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
     }
     .msg {
-      font-size: 12px;
-      margin-bottom: 8px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 12px;
     }
-    .msg-error { color: #f97373; }
-    .msg-ok { color: #22c55e; }
-    a { color: #818cf8; text-decoration: none; font-size: 12px; }
-    a:hover { text-decoration: underline; }
+    .msg-error {
+      background: rgba(249, 115, 115, 0.1);
+      border: 1px solid rgba(249, 115, 115, 0.2);
+      color: #fca5a5;
+    }
+    .msg-ok {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      color: #86efac;
+    }
     .foot {
-      margin-top: 10px;
+      margin-top: 24px;
       display: flex;
       justify-content: space-between;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
-      font-size: 12px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .foot > * {
+      flex: 1;
+      min-width: 120px;
+    }
+    a {
+      color: #818cf8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: #a5b4fc;
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="card">
+    <div class="logo">
+      <a href="{{ url_for('index') }}">Cardholics AI</a>
+    </div>
     <h1>Create your account</h1>
     <div class="sub">Set up Cardholics AI for your business. No card required during beta.</div>
 
@@ -806,11 +1342,12 @@ FORGOT_PASSWORD_HTML = """
   <title>Reset password · Cardholics AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
       display: flex;
       align-items: center;
@@ -819,56 +1356,118 @@ FORGOT_PASSWORD_HTML = """
     }
     .card {
       width: 100%;
-      max-width: 420px;
-      background: #020617;
+      max-width: 440px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
       border-radius: 20px;
-      border: 1px solid rgba(148,163,184,0.45);
-      padding: 22px 22px 24px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 40px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-    h1 { margin: 0 0 6px; font-size: 20px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    @media (max-width: 640px) {
+      .card { padding: 32px 24px; }
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo a {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e5e7eb;
+      text-decoration: none;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      font-size: 15px;
+      color: #9ca3af;
+      margin-bottom: 32px;
+      text-align: center;
+      line-height: 1.5;
+    }
     label {
       display: block;
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 4px;
+      font-size: 14px;
+      color: #e5e7eb;
+      margin-bottom: 8px;
+      font-weight: 500;
     }
     input {
       width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.6);
       color: #e5e7eb;
-      font-size: 13px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
+      font-size: 15px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
       font-family: inherit;
+      transition: all 0.2s;
     }
     input:focus {
       outline: none;
       border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    input::placeholder {
+      color: #6b7280;
     }
     .btn {
       width: 100%;
-      border-radius: 999px;
+      border-radius: 12px;
       border: none;
-      padding: 9px 14px;
+      padding: 14px 24px;
       font-family: inherit;
-      font-size: 14px;
-      margin-top: 4px;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
       cursor: pointer;
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
+      transition: all 0.2s;
     }
-    .msg { font-size: 12px; margin-bottom: 8px; color: #22c55e; }
-    a { color: #818cf8; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+    .msg {
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      color: #86efac;
+    }
+    .back-link {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 14px;
+    }
+    a {
+      color: #818cf8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: #a5b4fc;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="card">
+    <div class="logo">
+      <a href="{{ url_for('index') }}">Cardholics AI</a>
+    </div>
     <h1>Reset your password</h1>
-    <div class="sub">Enter your email and we'll send you a reset link.</div>
+    <div class="sub">Enter your email and we'll send you a reset link</div>
 
     {% if message %}
       <div class="msg">{{ message }}</div>
@@ -876,12 +1475,12 @@ FORGOT_PASSWORD_HTML = """
 
     <form method="post">
       <label>Email</label>
-      <input type="email" name="email" required />
+      <input type="email" name="email" placeholder="you@example.com" required />
       <button class="btn" type="submit">Send reset link</button>
     </form>
-    <p style="font-size:12px; margin-top:10px;">
+    <div class="back-link">
       <a href="{{ url_for('login') }}">&larr; Back to login</a>
-    </p>
+    </div>
   </div>
 </body>
 </html>
@@ -896,11 +1495,12 @@ RESET_PASSWORD_HTML = """
   <title>Choose new password · Cardholics AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
       display: flex;
       align-items: center;
@@ -909,76 +1509,152 @@ RESET_PASSWORD_HTML = """
     }
     .card {
       width: 100%;
-      max-width: 420px;
-      background: #020617;
+      max-width: 440px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
       border-radius: 20px;
-      border: 1px solid rgba(148,163,184,0.45);
-      padding: 22px 22px 24px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 40px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
-    h1 { margin: 0 0 6px; font-size: 20px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    @media (max-width: 640px) {
+      .card { padding: 32px 24px; }
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .logo a {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e5e7eb;
+      text-decoration: none;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      font-size: 15px;
+      color: #9ca3af;
+      margin-bottom: 32px;
+      text-align: center;
+      line-height: 1.5;
+    }
     label {
       display: block;
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 4px;
+      font-size: 14px;
+      color: #e5e7eb;
+      margin-bottom: 8px;
+      font-weight: 500;
     }
     input {
       width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.6);
       color: #e5e7eb;
-      font-size: 13px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
+      font-size: 15px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
       font-family: inherit;
+      transition: all 0.2s;
     }
     input:focus {
       outline: none;
       border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    input::placeholder {
+      color: #6b7280;
     }
     .btn {
       width: 100%;
-      border-radius: 999px;
+      border-radius: 12px;
       border: none;
-      padding: 9px 14px;
+      padding: 14px 24px;
       font-family: inherit;
-      font-size: 14px;
-      margin-top: 4px;
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
       cursor: pointer;
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
+      transition: all 0.2s;
     }
-    .msg { font-size: 12px; margin-bottom: 8px; }
-    .msg-err { color: #f97373; }
-    .msg-ok { color: #22c55e; }
-    a { color: #818cf8; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+    }
+    .msg {
+      font-size: 14px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 12px;
+    }
+    .msg-err {
+      background: rgba(249, 115, 115, 0.1);
+      border: 1px solid rgba(249, 115, 115, 0.2);
+      color: #fca5a5;
+    }
+    .msg-ok {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      color: #86efac;
+    }
+    .invalid-msg {
+      font-size: 14px;
+      color: #9ca3af;
+      text-align: center;
+      padding: 16px;
+      background: rgba(148, 163, 184, 0.05);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .back-link {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 14px;
+    }
+    a {
+      color: #818cf8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: #a5b4fc;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="card">
+    <div class="logo">
+      <a href="{{ url_for('index') }}">Cardholics AI</a>
+    </div>
     <h1>Choose a new password</h1>
-    <div class="sub">Enter a new password for your account.</div>
+    <div class="sub">Enter a new password for your account</div>
 
     {% if message %}
       <div class="msg {{ 'msg-err' if error else 'msg-ok' }}">{{ message }}</div>
     {% endif %}
 
     {% if valid %}
-      <form method="post">
-        <label>New password</label>
-        <input type="password" name="password" required />
+    <form method="post">
+      <label>New password</label>
+        <input type="password" name="password" placeholder="••••••••" required />
         <button class="btn" type="submit">Update password</button>
-      </form>
+    </form>
     {% else %}
-      <p style="font-size:12px;">This reset link is invalid or has expired.</p>
+      <div class="invalid-msg">This reset link is invalid or has expired.</div>
     {% endif %}
 
-    <p style="font-size:12px; margin-top:10px;">
+    <div class="back-link">
       <a href="{{ url_for('login') }}">&larr; Back to login</a>
-    </p>
+    </div>
   </div>
 </body>
 </html>
@@ -993,98 +1669,198 @@ DASHBOARD_HTML = """
   <title>Dashboard · Cardholics AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
     }
-    .shell {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 22px 18px 40px;
-    }
-    h1 { margin: 0 0 4px; font-size: 22px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 14px; }
-    .top {
+    .top-nav {
+      background: rgba(2, 6, 23, 0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      padding: 16px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
     }
-    .top a {
-      color: #9ca3af;
-      font-size: 12px;
+    @media (max-width: 640px) {
+      .top-nav { padding: 16px 20px; }
+    }
+    .nav-logo {
+      font-size: 18px;
+      font-weight: 600;
+      color: #e5e7eb;
       text-decoration: none;
     }
-    .top a:hover { text-decoration: underline; }
-    .card {
-      background: #020617;
-      border-radius: 18px;
-      border: 1px solid rgba(148,163,184,0.5);
-      padding: 14px 14px 16px;
-      margin-bottom: 16px;
-      font-size: 13px;
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
-    code {
-      font-size: 11px;
-      background: #020617;
-      border-radius: 8px;
-      padding: 6px 8px;
-      display: block;
-      border: 1px solid rgba(148,163,184,0.4);
+    .nav-user a {
+      color: #9ca3af;
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-user a:hover {
+      color: #e5e7eb;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 32px;
+    }
+    @media (max-width: 640px) {
+      .container { padding: 32px 20px; }
+    }
+    .page-header {
+      margin-bottom: 32px;
+    }
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .page-header .subtitle {
+      font-size: 16px;
+      color: #9ca3af;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border-radius: 2px;
+    }
+    .code-block {
+      background: rgba(2, 6, 23, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+      position: relative;
+    }
+    .code-block code {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      color: #e5e7eb;
       white-space: pre;
       overflow-x: auto;
+      display: block;
+      line-height: 1.6;
     }
-    .tag {
-      display: inline-block;
-      font-size: 11px;
+    .copy-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 6px 12px;
+      background: rgba(79, 70, 229, 0.2);
+      border: 1px solid rgba(79, 70, 229, 0.3);
+      border-radius: 8px;
+      color: #818cf8;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: rgba(79, 70, 229, 0.3);
+      border-color: rgba(79, 70, 229, 0.4);
+    }
+    .card p {
       color: #9ca3af;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.5);
-      padding: 2px 8px;
-      margin-bottom: 6px;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 16px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 8px;
+      font-size: 14px;
     }
-    th, td {
-      padding: 6px 4px;
-      border-bottom: 1px solid rgba(31,41,55,1);
+    thead {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    th {
       text-align: left;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
     }
-    th { color: #9ca3af; font-weight: 500; }
+    td {
+      padding: 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      color: #e5e7eb;
+    }
+    tbody tr:hover {
+      background: rgba(148, 163, 184, 0.05);
+    }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #9ca3af;
+    }
+    .empty-state p {
+      margin: 0;
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="top">
-      <div>
-        <h1>{{ biz.name }}</h1>
-        <div class="sub">Manage your widget and view recent leads.</div>
-      </div>
-      <div>
-        <a href="{{ url_for('logout') }}">Log out</a>
-      </div>
+  <nav class="top-nav">
+    <a href="{{ url_for('index') }}" class="nav-logo">Cardholics AI</a>
+    <div class="nav-user">
+      <a href="{{ url_for('logout') }}">Logout</a>
     </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>{{ biz.name }}</h1>
+      <div class="subtitle">Manage your widget and view recent leads</div>
+  </div>
 
     <div class="card">
-      <div class="tag">Widget embed code</div>
+      <h2 class="card-title">Widget embed code</h2>
       <p>Paste this right before <code>&lt;/body&gt;</code> on your website.</p>
-      <code>&lt;iframe
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode()">Copy</button>
+        <code id="embedCode">&lt;iframe
   src="{{ public_url }}?id={{ biz.business_id }}"
   style="width:100%;max-width:420px;height:520px;border:none;border-radius:18px;box-shadow:0 20px 60px rgba(15,23,42,0.9);"
   loading="lazy"
 &gt;&lt;/iframe&gt;</code>
-    </div>
+      </div>
+  </div>
 
     <div class="card">
-      <div class="tag">Recent leads</div>
+      <h2 class="card-title">Recent leads</h2>
       {% if leads %}
         <table>
           <thead>
@@ -1107,10 +1883,26 @@ DASHBOARD_HTML = """
           </tbody>
         </table>
       {% else %}
-        <p>No leads yet. Once visitors start chatting and leaving their info, they’ll appear here.</p>
+        <div class="empty-state">
+          <p>No leads yet. Once visitors start chatting and leaving their info, they'll appear here.</p>
+  </div>
       {% endif %}
     </div>
   </div>
+
+  <script>
+    function copyCode() {
+      const code = document.getElementById('embedCode').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = original;
+        }, 2000);
+      });
+    }
+  </script>
 </body>
 </html>
 """
@@ -1124,11 +1916,12 @@ CHAT_PAGE_HTML = """
   <title>{{ biz.name }} · Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
+      background: linear-gradient(180deg, #0a0a0f 0%, #020617 100%);
       color: #e5e7eb;
       display: flex;
       align-items: center;
@@ -1138,83 +1931,131 @@ CHAT_PAGE_HTML = """
     .shell {
       width: 100%;
       max-width: 420px;
-      background: #020617;
-      border-radius: 18px;
-      border: 1px solid rgba(148,163,184,0.5);
-      padding: 12px 12px 14px;
-      box-shadow: 0 26px 80px rgba(15,23,42,1);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 0;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       display: flex;
       flex-direction: column;
       height: 540px;
+      overflow: hidden;
     }
     .header {
-      padding: 4px 4px 8px;
-      border-bottom: 1px solid rgba(31,41,55,1);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.4);
     }
     .avatar {
-      width: 30px;
-      height: 30px;
-      border-radius: 999px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 20px;
+      flex-shrink: 0;
     }
-    .title { font-size: 14px; }
-    .subtitle { font-size: 11px; color: #9ca3af; }
+    .header-info {
+      flex: 1;
+    }
+    .title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #9ca3af;
+    }
     .messages {
       flex: 1;
       overflow-y: auto;
-      padding: 8px 2px;
-      font-size: 13px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      font-size: 14px;
     }
-    .msg { margin-bottom: 8px; max-width: 90%; }
+    .messages::-webkit-scrollbar {
+      width: 4px;
+    }
+    .messages::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 2px;
+    }
+    .msg {
+      display: flex;
+      gap: 8px;
+      max-width: 85%;
+    }
     .msg.me {
-      margin-left: auto;
-      text-align: right;
+      align-self: flex-end;
+      flex-direction: row-reverse;
     }
     .bubble {
-      display: inline-block;
-      padding: 6px 9px;
-      border-radius: 12px;
-      background: #111827;
+      padding: 12px 16px;
+      border-radius: 16px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+    .msg:not(.me) .bubble {
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid rgba(148, 163, 184, 0.15);
     }
     .msg.me .bubble {
-      background: #4f46e5;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #f9fafb;
     }
     .input-row {
-      border-top: 1px solid rgba(31,41,55,1);
-      padding-top: 6px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      padding: 16px 20px;
       display: flex;
-      gap: 6px;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.4);
     }
     input {
       flex: 1;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.6);
       color: #e5e7eb;
-      font-size: 13px;
-      padding: 7px 10px;
+      font-size: 14px;
+      padding: 12px 16px;
       font-family: inherit;
+      transition: all 0.2s;
     }
     input:focus {
       outline: none;
       border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    input::placeholder {
+      color: #6b7280;
     }
     button {
-      border-radius: 999px;
+      border-radius: 12px;
       border: none;
-      padding: 7px 12px;
-      font-size: 13px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 500;
       font-family: inherit;
       cursor: pointer;
-      background: #4f46e5;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
+      transition: all 0.2s;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
     }
   </style>
 </head>
@@ -1222,15 +2063,15 @@ CHAT_PAGE_HTML = """
   <div class="shell">
     <div class="header">
       <div class="avatar">✂️</div>
-      <div>
+      <div class="header-info">
         <div class="title">{{ biz.name }}</div>
-        <div class="subtitle">Ask a question about hours, services, or booking.</div>
-      </div>
+        <div class="subtitle">Ask a question about hours, services, or booking</div>
+    </div>
     </div>
     <div class="messages" id="messages">
       <div class="msg">
-        <div class="bubble">Hey! I’m the assistant for {{ biz.name }}. How can I help?</div>
-      </div>
+        <div class="bubble">Hey! I'm the assistant for {{ biz.name }}. How can I help?</div>
+  </div>
     </div>
     <div class="input-row">
       <input id="input" type="text" placeholder="Ask something…" />
@@ -1259,6 +2100,8 @@ CHAT_PAGE_HTML = """
       if (!text) return;
       addMessage(text, true);
       inputEl.value = "";
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Sending...";
       try {
         const resp = await fetch("/chat", {
           method: "POST",
@@ -1269,6 +2112,9 @@ CHAT_PAGE_HTML = """
         addMessage(data.reply || "Sorry, something went wrong.");
       } catch (e) {
         addMessage("Sorry, something went wrong.");
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send";
       }
     }
 
@@ -1364,7 +2210,7 @@ ADMIN_BUSINESSES_HTML = """
         {% endfor %}
       </tbody>
     </table>
-  </div>
+    </div>
 </body>
 </html>
 """
@@ -1530,7 +2376,6 @@ def forgot_password():
                 send_email(user.email, subject, body)
         finally:
             db.close()
-
         message = "If an account exists for that email, you'll receive a reset link shortly."
 
     return render_template_string(FORGOT_PASSWORD_HTML, message=message)
