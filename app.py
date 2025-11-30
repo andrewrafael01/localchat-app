@@ -37,7 +37,6 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip()
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
 FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 
-# NOTE: bump db filename so new columns are created cleanly
 DB_URL = os.getenv("DATABASE_URL", "sqlite:///app3.db")
 
 CHAT_LOG_FILE = "chat_logs.txt"
@@ -126,6 +125,7 @@ def login_required(f):
         if not u:
             return redirect(url_for("login"))
         return f(*args, **kwargs)
+
     return wrapper
 
 
@@ -136,6 +136,7 @@ def admin_required(f):
         if not u or role != "admin":
             return redirect(url_for("login"))
         return f(*args, **kwargs)
+
     return wrapper
 
 
@@ -148,6 +149,7 @@ def business_required(f):
         if not u.is_active:
             return "Your account is pending approval.", 403
         return f(*args, **kwargs)
+
     return wrapper
 
 
@@ -533,6 +535,110 @@ PRICING_HTML = """
 
 
 LOGIN_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Login · Cardholics AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #020617;
+      border-radius: 20px;
+      border: 1px solid rgba(148,163,184,0.45);
+      padding: 22px 22px 24px;
+    }
+    h1 { margin: 0 0 6px; font-size: 20px; }
+    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    input {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.55);
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-family: inherit;
+    }
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+    .btn {
+      width: 100%;
+      border-radius: 999px;
+      border: none;
+      padding: 9px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      margin-top: 4px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #f9fafb;
+    }
+    .msg { font-size: 12px; margin-bottom: 8px; color: #f97373; }
+    .foot {
+      margin-top: 10px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    a { color: #818cf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Welcome back</h1>
+    <div class="sub">Sign in to manage your chat widget and leads.</div>
+
+    {% if error %}
+      <div class="msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      <label>Email</label>
+      <input type="email" name="email" required />
+
+      <label>Password</label>
+      <input type="password" name="password" required />
+
+      <button class="btn" type="submit">Log in</button>
+    </form>
+
+    <div class="foot">
+      <span>Need an account? <a href="{{ url_for('signup') }}">Sign up</a></span>
+      <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+
 SIGNUP_HTML = """
 <!DOCTYPE html>
 <html>
@@ -685,109 +791,6 @@ SIGNUP_HTML = """
     <div class="foot">
       <span>Already have an account? <a href="{{ url_for('login') }}">Log in</a></span>
       <a href="{{ url_for('index') }}">Back to site</a>
-    </div>
-  </div>
-</body>
-</html>
-"""
-
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <title>Login · Cardholics AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    .card {
-      width: 100%;
-      max-width: 420px;
-      background: #020617;
-      border-radius: 20px;
-      border: 1px solid rgba(148,163,184,0.45);
-      padding: 22px 22px 24px;
-    }
-    h1 { margin: 0 0 6px; font-size: 20px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
-    label {
-      display: block;
-      font-size: 12px;
-      color: #9ca3af;
-      margin-bottom: 4px;
-    }
-    input {
-      width: 100%;
-      border-radius: 10px;
-      border: 1px solid rgba(148,163,184,0.55);
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 13px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
-      font-family: inherit;
-    }
-    input:focus {
-      outline: none;
-      border-color: #6366f1;
-    }
-    .btn {
-      width: 100%;
-      border-radius: 999px;
-      border: none;
-      padding: 9px 14px;
-      font-family: inherit;
-      font-size: 14px;
-      margin-top: 4px;
-      cursor: pointer;
-      background: linear-gradient(135deg, #4f46e5, #6366f1);
-      color: #f9fafb;
-    }
-    .msg { font-size: 12px; margin-bottom: 8px; color: #f97373; }
-    .foot {
-      margin-top: 10px;
-      font-size: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    a { color: #818cf8; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Welcome back</h1>
-    <div class="sub">Sign in to manage your chat widget and leads.</div>
-
-    {% if error %}
-      <div class="msg">{{ error }}</div>
-    {% endif %}
-
-    <form method="post">
-      <label>Email</label>
-      <input type="email" name="email" required />
-
-      <label>Password</label>
-      <input type="password" name="password" required />
-
-      <button class="btn" type="submit">Log in</button>
-    </form>
-
-    <div class="foot">
-      <span>Need an account? <a href="{{ url_for('signup') }}">Sign up</a></span>
-      <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
     </div>
   </div>
 </body>
@@ -1540,34 +1543,27 @@ def reset_password():
         return render_template_string(RESET_PASSWORD_HTML, message="Invalid link.", error=True, valid=False)
 
     db = get_db()
-    user = None
     try:
         user = db.query(User).filter(User.reset_token == token).first()
-    finally:
-        pass
+        now = datetime.datetime.utcnow()
+        valid = bool(user and user.reset_expires_at and user.reset_expires_at > now)
 
-    now = datetime.datetime.utcnow()
-    valid = bool(user and user.reset_expires_at and user.reset_expires_at > now)
+        message = None
+        error = False
 
-    message = None
-    error = False
-
-    if request.method == "POST" and valid:
-        password = (request.form.get("password") or "").strip()
-        if not password:
-            message = "Password cannot be empty."
-            error = True
-        else:
-            try:
+        if request.method == "POST" and valid:
+            password = (request.form.get("password") or "").strip()
+            if not password:
+                message = "Password cannot be empty."
+                error = True
+            else:
                 user.password_hash = generate_password_hash(password)
                 user.reset_token = None
                 user.reset_expires_at = None
                 db.commit()
                 message = "Your password has been updated. You can now log in."
                 error = False
-                valid = False  # hide the form after success
-            finally:
-                db.close()
+                valid = False  # hide form after success
                 return render_template_string(
                     RESET_PASSWORD_HTML,
                     message=message,
@@ -1575,14 +1571,13 @@ def reset_password():
                     valid=False,
                 )
 
-    if db:
+        if not valid and message is None:
+            message = "This reset link is invalid or has expired."
+            error = True
+
+        return render_template_string(RESET_PASSWORD_HTML, message=message, error=error, valid=valid)
+    finally:
         db.close()
-
-    if not valid and message is None:
-        message = "This reset link is invalid or has expired."
-        error = True
-
-    return render_template_string(RESET_PASSWORD_HTML, message=message, error=error, valid=valid)
 
 
 @app.route("/dashboard")
