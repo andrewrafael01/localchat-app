@@ -533,6 +533,164 @@ PRICING_HTML = """
 
 
 LOGIN_HTML = """
+SIGNUP_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign up · Cardholics AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: #020617;
+      border-radius: 20px;
+      border: 1px solid rgba(148,163,184,0.45);
+      padding: 22px 22px 24px;
+    }
+    h1 { margin: 0 0 6px; font-size: 20px; }
+    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    input, textarea, select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.55);
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+    }
+    .btn {
+      width: 100%;
+      border-radius: 999px;
+      border: none;
+      padding: 9px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      margin-top: 4px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #f9fafb;
+    }
+    .msg {
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .msg-error { color: #f97373; }
+    .msg-ok { color: #22c55e; }
+    a { color: #818cf8; text-decoration: none; font-size: 12px; }
+    a:hover { text-decoration: underline; }
+    .foot {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Create your account</h1>
+    <div class="sub">Set up Cardholics AI for your business. No card required during beta.</div>
+
+    {% if message %}
+      <div class="msg {{ 'msg-error' if error else 'msg-ok' }}">{{ message }}</div>
+    {% endif %}
+
+    <form method="post">
+      <div class="row">
+        <div>
+          <label>Your name</label>
+          <input type="text" name="owner_name" required />
+        </div>
+        <div>
+          <label>Work email</label>
+          <input type="email" name="email" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Password</label>
+          <input type="password" name="password" required />
+        </div>
+        <div>
+          <label>Plan</label>
+          <select name="plan">
+            <option value="{{ plan or 'starter' }}">Starter (beta)</option>
+            <option value="growth">Growth</option>
+            <option value="scale">Scale</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Business name</label>
+      <input type="text" name="business_name" required />
+
+      <div class="row">
+        <div>
+          <label>Phone</label>
+          <input type="text" name="phone" />
+        </div>
+        <div>
+          <label>Category (barbershop, dentist, etc.)</label>
+          <input type="text" name="category" />
+        </div>
+      </div>
+
+      <label>Business address</label>
+      <input type="text" name="address" />
+
+      <label>Online booking link (Calendly, etc.)</label>
+      <input type="url" name="booking_url" placeholder="https://..." />
+
+      <label>One-line blurb</label>
+      <textarea name="blurb" placeholder="E.g. Clean fades, sharp lines, no awkward small talk."></textarea>
+
+      <button class="btn" type="submit">Create account</button>
+    </form>
+
+    <div class="foot">
+      <span>Already have an account? <a href="{{ url_for('login') }}">Log in</a></span>
+      <a href="{{ url_for('index') }}">Back to site</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
 <!DOCTYPE html>
 <html>
 <head>
