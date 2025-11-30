@@ -701,7 +701,7 @@ LANDING_HTML = """
     .flow-icon {
       width: 64px;
       height: 64px;
-      border-radius: 16px;
+        border-radius: 16px;
       background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(99, 102, 241, 0.2));
       border: 1px solid rgba(79, 70, 229, 0.3);
       display: flex;
@@ -1350,7 +1350,10 @@ LOGIN_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">NovuChat</a>
+      <a href="{{ url_for('index') }}">
+        <div class="logo-icon">N</div>
+        <span>NovuChat</span>
+      </a>
     </div>
     <h1>Welcome back</h1>
     <div class="sub">Sign in to manage your chat widget and leads</div>
@@ -1399,6 +1402,30 @@ SIGNUP_HTML = """
       justify-content: center;
       padding: 24px;
     }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes logoPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      }
+      50% { 
+        transform: scale(1.05); 
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+      }
+    }
+    @keyframes logoShine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
     .card {
       width: 100%;
       max-width: 600px;
@@ -1408,6 +1435,22 @@ SIGNUP_HTML = """
       border: 1px solid rgba(148, 163, 184, 0.2);
       padding: 40px 32px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: fadeInUp 0.8s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.05), transparent);
+      transition: left 0.6s;
+    }
+    .card:hover::before {
+      left: 100%;
     }
     @media (max-width: 640px) {
       .card { padding: 32px 24px; }
@@ -1415,12 +1458,49 @@ SIGNUP_HTML = """
     .logo {
       text-align: center;
       margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
     .logo a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       font-size: 24px;
       font-weight: 700;
       color: #e5e7eb;
       text-decoration: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .logo a:hover {
+      transform: translateY(-2px);
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      animation: logoPulse 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: logoShine 3s ease-in-out infinite;
     }
     h1 {
       margin: 0 0 8px;
@@ -1454,7 +1534,7 @@ SIGNUP_HTML = """
       margin-bottom: 20px;
       font-family: inherit;
       box-sizing: border-box;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     textarea {
       min-height: 80px;
@@ -1464,6 +1544,7 @@ SIGNUP_HTML = """
       outline: none;
       border-color: #6366f1;
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+      transform: translateY(-1px);
     }
     input::placeholder, textarea::placeholder {
       color: #6b7280;
@@ -1537,7 +1618,10 @@ SIGNUP_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">NovuChat</a>
+      <a href="{{ url_for('index') }}">
+        <div class="logo-icon">N</div>
+        <span>NovuChat</span>
+      </a>
     </div>
     <h1>Create your account</h1>
     <div class="sub">Set up NovuChat for your business. No card required during beta.</div>
@@ -1629,6 +1713,30 @@ FORGOT_PASSWORD_HTML = """
       justify-content: center;
       padding: 24px;
     }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes logoPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      }
+      50% { 
+        transform: scale(1.05); 
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+      }
+    }
+    @keyframes logoShine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
     .card {
       width: 100%;
       max-width: 440px;
@@ -1638,6 +1746,22 @@ FORGOT_PASSWORD_HTML = """
       border: 1px solid rgba(148, 163, 184, 0.2);
       padding: 40px 32px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: fadeInUp 0.8s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.05), transparent);
+      transition: left 0.6s;
+    }
+    .card:hover::before {
+      left: 100%;
     }
     @media (max-width: 640px) {
       .card { padding: 32px 24px; }
@@ -1645,12 +1769,49 @@ FORGOT_PASSWORD_HTML = """
     .logo {
       text-align: center;
       margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
     .logo a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       font-size: 24px;
       font-weight: 700;
       color: #e5e7eb;
       text-decoration: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .logo a:hover {
+      transform: translateY(-2px);
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      animation: logoPulse 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: logoShine 3s ease-in-out infinite;
     }
     h1 {
       margin: 0 0 8px;
@@ -1739,7 +1900,10 @@ FORGOT_PASSWORD_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">NovuChat</a>
+      <a href="{{ url_for('index') }}">
+        <div class="logo-icon">N</div>
+        <span>NovuChat</span>
+      </a>
     </div>
     <h1>Reset your password</h1>
     <div class="sub">Enter your email and we'll send you a reset link</div>
@@ -1782,6 +1946,30 @@ RESET_PASSWORD_HTML = """
       justify-content: center;
       padding: 24px;
     }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes logoPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      }
+      50% { 
+        transform: scale(1.05); 
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+      }
+    }
+    @keyframes logoShine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
     .card {
       width: 100%;
       max-width: 440px;
@@ -1791,6 +1979,22 @@ RESET_PASSWORD_HTML = """
       border: 1px solid rgba(148, 163, 184, 0.2);
       padding: 40px 32px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: fadeInUp 0.8s ease-out;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.05), transparent);
+      transition: left 0.6s;
+    }
+    .card:hover::before {
+      left: 100%;
     }
     @media (max-width: 640px) {
       .card { padding: 32px 24px; }
@@ -1798,12 +2002,49 @@ RESET_PASSWORD_HTML = """
     .logo {
       text-align: center;
       margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
     .logo a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       font-size: 24px;
       font-weight: 700;
       color: #e5e7eb;
       text-decoration: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .logo a:hover {
+      transform: translateY(-2px);
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      animation: logoPulse 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-icon::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: logoShine 3s ease-in-out infinite;
     }
     h1 {
       margin: 0 0 8px;
@@ -1908,7 +2149,10 @@ RESET_PASSWORD_HTML = """
 <body>
   <div class="card">
     <div class="logo">
-      <a href="{{ url_for('index') }}">NovuChat</a>
+      <a href="{{ url_for('index') }}">
+        <div class="logo-icon">N</div>
+        <span>NovuChat</span>
+      </a>
     </div>
     <h1>Choose a new password</h1>
     <div class="sub">Enter a new password for your account</div>
@@ -2752,8 +2996,8 @@ def forgot_password():
                     "This link will expire in 1 hour. If you didn't request this, you can ignore this email."
                 )
                 send_email(user.email, subject, body)
-    finally:
-        db.close()
+        finally:
+            db.close()
         message = "If an account exists for that email, you'll receive a reset link shortly."
 
     return render_template_string(FORGOT_PASSWORD_HTML, message=message)
@@ -2809,7 +3053,7 @@ def dashboard():
     user, role, business_id = get_current_user()
     db = get_db()
     try:
-            biz = db.query(Business).filter(Business.business_id == business_id).first()
+        biz = db.query(Business).filter(Business.business_id == business_id).first()
         leads = (
             db.query(Lead)
             .filter(Lead.business_id == business_id)
@@ -2931,7 +3175,7 @@ FAQs:
 
         if not OPENAI_API_KEY:
             reply_text = "AI is not configured yet."
-    else:
+        else:
             resp = requests.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers={
