@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import secrets
 from functools import wraps
 
 import requests
@@ -36,7 +37,8 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "").strip()
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
 FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 
-DB_URL = os.getenv("DATABASE_URL", "sqlite:///app2.db")  # note: new file name
+# NOTE: bump db filename so new columns are created cleanly
+DB_URL = os.getenv("DATABASE_URL", "sqlite:///app3.db")
 
 CHAT_LOG_FILE = "chat_logs.txt"
 
@@ -72,8 +74,10 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     role = Column(String(32), nullable=False, default="business")  # "admin" or "business"
-    business_id = Column(String(64), nullable=True)  # for business users
+    business_id = Column(String(64), nullable=True)
     is_active = Column(Boolean, default=True)
+    reset_token = Column(String(128), nullable=True)
+    reset_expires_at = Column(DateTime, nullable=True)
 
 
 class Lead(Base):
@@ -246,9 +250,7 @@ LANDING_HTML = """
   <title>Cardholics AI – Chat widget for local businesses</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      color-scheme: dark;
-    }
+    :root { color-scheme: dark; }
     body {
       margin: 0;
       min-height: 100vh;
@@ -282,12 +284,8 @@ LANDING_HTML = """
       grid-template-columns: minmax(0,1.2fr) minmax(0,1fr);
       gap: 24px;
     }
-    @media (max-width: 840px) {
-      .shell { grid-template-columns: minmax(0,1fr); }
-    }
-    .hero {
-      padding: 20px 18px;
-    }
+    @media (max-width: 840px) { .shell { grid-template-columns: minmax(0,1fr); } }
+    .hero { padding: 20px 18px; }
     .badge {
       display: inline-flex;
       align-items: center;
@@ -340,10 +338,7 @@ LANDING_HTML = """
       color: #e5e7eb;
       border: 1px solid rgba(148,163,184,0.5);
     }
-    .tiny {
-      font-size: 11px;
-      color: #6b7280;
-    }
+    .tiny { font-size: 11px; color: #6b7280; }
     .panel {
       background: rgba(15,23,42,0.98);
       border-radius: 20px;
@@ -352,16 +347,8 @@ LANDING_HTML = """
       padding: 16px 16px 18px;
       font-size: 13px;
     }
-    .plan-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .price {
-      font-size: 24px;
-      font-weight: 600;
-      margin: 4px 0;
-    }
+    .plan-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .price { font-size: 24px; font-weight: 600; margin: 4px 0; }
     .price span {
       font-size: 13px;
       color: #9ca3af;
@@ -374,10 +361,7 @@ LANDING_HTML = """
       color: #9ca3af;
       font-size: 12px;
     }
-    li::before {
-      content: "• ";
-      color: #6366f1;
-    }
+    li::before { content: "• "; color: #6366f1; }
   </style>
 </head>
 <body>
@@ -438,10 +422,7 @@ PRICING_HTML = """
       justify-content: center;
       padding: 32px 16px;
     }
-    .shell {
-      width: 100%;
-      max-width: 960px;
-    }
+    .shell { width: 100%; max-width: 960px; }
     h1 { margin: 0 0 6px; font-size: 24px; }
     .sub { font-size: 13px; color: #9ca3af; margin-bottom: 20px; }
     .grid {
@@ -449,9 +430,7 @@ PRICING_HTML = """
       grid-template-columns: repeat(3, minmax(0,1fr));
       gap: 16px;
     }
-    @media (max-width: 900px) {
-      .grid { grid-template-columns: minmax(0,1fr); }
-    }
+    @media (max-width: 900px) { .grid { grid-template-columns: minmax(0,1fr); } }
     .card {
       background: #020617;
       border-radius: 18px;
@@ -468,10 +447,7 @@ PRICING_HTML = """
       color: #9ca3af;
       font-size: 12px;
     }
-    li::before {
-      content: "• ";
-      color: #6366f1;
-    }
+    li::before { content: "• "; color: #6366f1; }
     .btn {
       width: 100%;
       border-radius: 999px;
@@ -625,6 +601,8 @@ LOGIN_HTML = """
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     a { color: #818cf8; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -650,8 +628,8 @@ LOGIN_HTML = """
     </form>
 
     <div class="foot">
-      <span>Need an account?</span>
-      <a href="{{ url_for('signup') }}">Sign up</a>
+      <span>Need an account? <a href="{{ url_for('signup') }}">Sign up</a></span>
+      <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
     </div>
   </div>
 </body>
@@ -659,43 +637,42 @@ LOGIN_HTML = """
 """
 
 
-SIGNUP_HTML = """
+FORGOT_PASSWORD_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Sign up · Cardholics AI</title>
+  <title>Reset password · Cardholics AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       margin: 0;
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background: radial-gradient(circle at top, #1e293b 0, #020617 55%, #000 100%);
+      background: #020617;
       color: #e5e7eb;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 24px;
     }
     .card {
       width: 100%;
-      max-width: 520px;
-      background: rgba(15,23,42,0.98);
+      max-width: 420px;
+      background: #020617;
       border-radius: 20px;
       border: 1px solid rgba(148,163,184,0.45);
       padding: 22px 22px 24px;
-      box-shadow: 0 30px 80px rgba(15,23,42,1);
     }
-    h1 { margin: 0 0 4px; font-size: 20px; }
-    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 18px; }
+    h1 { margin: 0 0 6px; font-size: 20px; }
+    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
     label {
       display: block;
       font-size: 12px;
       color: #9ca3af;
       margin-bottom: 4px;
     }
-    input, textarea {
+    input {
       width: 100%;
       border-radius: 10px;
       border: 1px solid rgba(148,163,184,0.55);
@@ -705,16 +682,10 @@ SIGNUP_HTML = """
       padding: 8px 10px;
       margin-bottom: 10px;
       font-family: inherit;
-      resize: vertical;
     }
-    input:focus, textarea:focus {
+    input:focus {
       outline: none;
       border-color: #6366f1;
-    }
-    .row-two {
-      display: grid;
-      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-      gap: 10px;
     }
     .btn {
       width: 100%;
@@ -728,76 +699,125 @@ SIGNUP_HTML = """
       background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: #f9fafb;
     }
-    .foot {
-      margin-top: 10px;
-      font-size: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .msg { font-size: 12px; margin-bottom: 8px; color: #22c55e; }
     a { color: #818cf8; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .msg { font-size: 12px; margin-bottom: 8px; }
-    .msg-err { color: #f97373; }
-    .msg-ok { color: #22c55e; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Create your account</h1>
-    <div class="sub">Set up your business and get your chat widget.</div>
+    <h1>Reset your password</h1>
+    <div class="sub">Enter your email and we'll send you a reset link.</div>
+
+    {% if message %}
+      <div class="msg">{{ message }}</div>
+    {% endif %}
+
+    <form method="post">
+      <label>Email</label>
+      <input type="email" name="email" required />
+      <button class="btn" type="submit">Send reset link</button>
+    </form>
+    <p style="font-size:12px; margin-top:10px;">
+      <a href="{{ url_for('login') }}">&larr; Back to login</a>
+    </p>
+  </div>
+</body>
+</html>
+"""
+
+
+RESET_PASSWORD_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Choose new password · Cardholics AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #020617;
+      border-radius: 20px;
+      border: 1px solid rgba(148,163,184,0.45);
+      padding: 22px 22px 24px;
+    }
+    h1 { margin: 0 0 6px; font-size: 20px; }
+    .sub { font-size: 13px; color: #9ca3af; margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    input {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.55);
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 13px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-family: inherit;
+    }
+    input:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+    .btn {
+      width: 100%;
+      border-radius: 999px;
+      border: none;
+      padding: 9px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      margin-top: 4px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #f9fafb;
+    }
+    .msg { font-size: 12px; margin-bottom: 8px; }
+    .msg-err { color: #f97373; }
+    .msg-ok { color: #22c55e; }
+    a { color: #818cf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Choose a new password</h1>
+    <div class="sub">Enter a new password for your account.</div>
 
     {% if message %}
       <div class="msg {{ 'msg-err' if error else 'msg-ok' }}">{{ message }}</div>
     {% endif %}
 
-    {% if plan %}
-      <div style="font-size:12px; color:#9ca3af; margin-bottom:8px;">
-        Plan selected: <strong>{{ plan|capitalize }}</strong>
-      </div>
+    {% if valid %}
+      <form method="post">
+        <label>New password</label>
+        <input type="password" name="password" required />
+        <button class="btn" type="submit">Update password</button>
+      </form>
+    {% else %}
+      <p style="font-size:12px;">This reset link is invalid or has expired.</p>
     {% endif %}
-    <input type="hidden" name="plan" form="signup-form" value="{{ plan or '' }}" />
 
-    <form method="post" id="signup-form">
-      <label>Your name</label>
-      <input type="text" name="owner_name" required />
-
-      <label>Email</label>
-      <input type="email" name="email" required />
-
-      <label>Password</label>
-      <input type="password" name="password" required />
-
-      <label>Business name</label>
-      <input type="text" name="business_name" required />
-
-      <div class="row-two">
-        <div>
-          <label>Business phone (optional)</label>
-          <input type="text" name="phone" />
-        </div>
-        <div>
-          <label>Category (optional)</label>
-          <input type="text" name="category" />
-        </div>
-      </div>
-
-      <label>Business address (optional)</label>
-      <input type="text" name="address" />
-
-      <label>Booking link (optional)</label>
-      <input type="url" name="booking_url" />
-
-      <label>Short description (optional)</label>
-      <textarea name="blurb" rows="3"></textarea>
-
-      <button class="btn" type="submit">Sign up</button>
-    </form>
-
-    <div class="foot">
-      <span>Already have an account?</span>
-      <a href="{{ url_for('login') }}">Sign in</a>
-    </div>
+    <p style="font-size:12px; margin-top:10px;">
+      <a href="{{ url_for('login') }}">&larr; Back to login</a>
+    </p>
   </div>
 </body>
 </html>
@@ -991,10 +1011,7 @@ CHAT_PAGE_HTML = """
       padding: 8px 2px;
       font-size: 13px;
     }
-    .msg {
-      margin-bottom: 8px;
-      max-width: 90%;
-    }
+    .msg { margin-bottom: 8px; max-width: 90%; }
     .msg.me {
       margin-left: auto;
       text-align: right;
@@ -1104,163 +1121,6 @@ CHAT_PAGE_HTML = """
 """
 
 
-# ----------------- Routes -----------------
-
-
-@app.route("/")
-def index():
-    business_id = (request.args.get("id") or "").strip()
-    if business_id:
-        db = get_db()
-        try:
-            biz = db.query(Business).filter(Business.business_id == business_id).first()
-        finally:
-            db.close()
-        if not biz:
-            return "Business not found.", 404
-        return render_template_string(CHAT_PAGE_HTML, biz=biz)
-    return render_template_string(LANDING_HTML)
-
-
-@app.route("/pricing")
-def pricing():
-    return render_template_string(PRICING_HTML)
-
-
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    message = None
-    error = False
-    plan = (request.args.get("plan") or "").strip().lower()
-
-    if request.method == "POST":
-        owner_name = (request.form.get("owner_name") or "").strip()
-        email = (request.form.get("email") or "").strip().lower()
-        password = (request.form.get("password") or "").strip()
-        business_name = (request.form.get("business_name") or "").strip()
-        phone = (request.form.get("phone") or "").strip()
-        category = (request.form.get("category") or "").strip()
-        address = (request.form.get("address") or "").strip()
-        booking_url = (request.form.get("booking_url") or "").strip()
-        blurb = (request.form.get("blurb") or "").strip()
-        plan = (request.form.get("plan") or plan).strip().lower()
-
-        if not owner_name or not email or not password or not business_name:
-            message = "Name, email, password, and business name are required."
-            error = True
-        else:
-            db = get_db()
-            try:
-                existing = db.query(User).filter(User.email == email).first()
-                if existing:
-                    message = "An account with this email already exists."
-                    error = True
-                else:
-                    biz_id = slugify_business_id(business_name)
-                    biz = Business(
-                        business_id=biz_id,
-                        name=business_name,
-                        location="",
-                        contact=phone,
-                        address=address,
-                        booking_url=booking_url,
-                        blurb=blurb,
-                        category=category or plan,
-                    )
-                    db.add(biz)
-                    db.commit()
-
-                    user = User(
-                        email=email,
-                        password_hash=generate_password_hash(password),
-                        role="business",
-                        business_id=biz_id,
-                        is_active=False,  # require admin approval
-                    )
-                    db.add(user)
-                    db.commit()
-
-                    message = "Account created! You'll get an email once an admin approves your account."
-                    error = False
-
-                    # notify admin
-                    if ADMIN_EMAIL:
-                        subject = "New Cardholics AI signup"
-                        body = (
-                            f"Owner: {owner_name}\n"
-                            f"Email: {email}\n"
-                            f"Business: {business_name}\n"
-                            f"Business ID: {biz_id}\n"
-                            f"Plan: {plan or 'not specified'}\n"
-                            f"Phone: {phone}\n"
-                            f"Address: {address}\n"
-                            f"Booking URL: {booking_url}\n"
-                            f"Category: {category}\n\n"
-                            "Log into the admin panel to review and approve this account."
-                        )
-                        send_email(ADMIN_EMAIL, subject, body)
-            finally:
-                db.close()
-
-    return render_template_string(SIGNUP_HTML, message=message, error=error, plan=plan)
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    error = None
-    if request.method == "POST":
-        email = (request.form.get("email") or "").strip().lower()
-        password = request.form.get("password") or ""
-
-        db = get_db()
-        try:
-            user = db.query(User).filter(User.email == email).first()
-        finally:
-            db.close()
-
-        if not user or not check_password_hash(user.password_hash, password):
-            error = "Invalid email or password."
-        elif user.role == "business" and not user.is_active:
-            error = "Your account is pending approval."
-        else:
-            session["user_id"] = user.id
-            if user.role == "admin":
-                return redirect(url_for("admin_businesses"))
-            else:
-                return redirect(url_for("dashboard"))
-
-    return render_template_string(LOGIN_HTML, error=error)
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
-
-
-@app.route("/dashboard")
-@business_required
-def dashboard():
-    user, role, business_id = get_current_user()
-    db = get_db()
-    try:
-        biz = db.query(Business).filter(Business.business_id == business_id).first()
-        leads = (
-            db.query(Lead)
-            .filter(Lead.business_id == business_id)
-            .order_by(Lead.created_at.desc())
-            .limit(50)
-            .all()
-        )
-    finally:
-        db.close()
-
-    public_url = request.url_root.rstrip("/")
-    return render_template_string(DASHBOARD_HTML, biz=biz, leads=leads, public_url=public_url)
-
-
-# -------- Admin: approve accounts --------
-
 ADMIN_BUSINESSES_HTML = """
 <!DOCTYPE html>
 <html>
@@ -1349,6 +1209,245 @@ ADMIN_BUSINESSES_HTML = """
 """
 
 
+# ----------------- Routes -----------------
+
+
+@app.route("/")
+def index():
+    business_id = (request.args.get("id") or "").strip()
+    if business_id:
+        db = get_db()
+        try:
+            biz = db.query(Business).filter(Business.business_id == business_id).first()
+        finally:
+            db.close()
+        if not biz:
+            return "Business not found.", 404
+        return render_template_string(CHAT_PAGE_HTML, biz=biz)
+    return render_template_string(LANDING_HTML)
+
+
+@app.route("/pricing")
+def pricing():
+    return render_template_string(PRICING_HTML)
+
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    message = None
+    error = False
+    plan = (request.args.get("plan") or "").strip().lower()
+
+    if request.method == "POST":
+        owner_name = (request.form.get("owner_name") or "").strip()
+        email = (request.form.get("email") or "").strip().lower()
+        password = (request.form.get("password") or "").strip()
+        business_name = (request.form.get("business_name") or "").strip()
+        phone = (request.form.get("phone") or "").strip()
+        category = (request.form.get("category") or "").strip()
+        address = (request.form.get("address") or "").strip()
+        booking_url = (request.form.get("booking_url") or "").strip()
+        blurb = (request.form.get("blurb") or "").strip()
+        plan = (request.form.get("plan") or plan).strip().lower()
+
+        if not owner_name or not email or not password or not business_name:
+            message = "Name, email, password, and business name are required."
+            error = True
+        else:
+            db = get_db()
+            try:
+                existing = db.query(User).filter(User.email == email).first()
+                if existing:
+                    message = "An account with this email already exists."
+                    error = True
+                else:
+                    biz_id = slugify_business_id(business_name)
+                    biz = Business(
+                        business_id=biz_id,
+                        name=business_name,
+                        location="",
+                        contact=phone,
+                        address=address,
+                        booking_url=booking_url,
+                        blurb=blurb,
+                        category=category or plan,
+                    )
+                    db.add(biz)
+                    db.commit()
+
+                    user = User(
+                        email=email,
+                        password_hash=generate_password_hash(password),
+                        role="business",
+                        business_id=biz_id,
+                        is_active=False,  # require admin approval
+                    )
+                    db.add(user)
+                    db.commit()
+
+                    message = "Account created! You'll get an email once an admin approves your account."
+                    error = False
+
+                    if ADMIN_EMAIL:
+                        subject = "New Cardholics AI signup"
+                        body = (
+                            f"Owner: {owner_name}\n"
+                            f"Email: {email}\n"
+                            f"Business: {business_name}\n"
+                            f"Business ID: {biz_id}\n"
+                            f"Plan: {plan or 'not specified'}\n"
+                            f"Phone: {phone}\n"
+                            f"Address: {address}\n"
+                            f"Booking URL: {booking_url}\n"
+                            f"Category: {category}\n\n"
+                            "Log into the admin panel to review and approve this account."
+                        )
+                        send_email(ADMIN_EMAIL, subject, body)
+            finally:
+                db.close()
+
+    return render_template_string(SIGNUP_HTML, message=message, error=error, plan=plan)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        email = (request.form.get("email") or "").strip().lower()
+        password = request.form.get("password") or ""
+
+        db = get_db()
+        try:
+            user = db.query(User).filter(User.email == email).first()
+        finally:
+            db.close()
+
+        if not user or not check_password_hash(user.password_hash, password):
+            error = "Invalid email or password."
+        elif user.role == "business" and not user.is_active:
+            error = "Your account is pending approval."
+        else:
+            session["user_id"] = user.id
+            if user.role == "admin":
+                return redirect(url_for("admin_businesses"))
+            else:
+                return redirect(url_for("dashboard"))
+
+    return render_template_string(LOGIN_HTML, error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    message = None
+    if request.method == "POST":
+        email = (request.form.get("email") or "").strip().lower()
+        db = get_db()
+        try:
+            user = db.query(User).filter(User.email == email).first()
+            if user:
+                token = secrets.token_urlsafe(48)
+                expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+                user.reset_token = token
+                user.reset_expires_at = expires
+                db.commit()
+
+                base_url = request.url_root.rstrip("/")
+                reset_link = f"{base_url}{url_for('reset_password')}?token={token}"
+
+                subject = "Reset your Cardholics AI password"
+                body = (
+                    "You requested a password reset for your Cardholics AI account.\n\n"
+                    f"Click this link to choose a new password:\n{reset_link}\n\n"
+                    "This link will expire in 1 hour. If you didn't request this, you can ignore this email."
+                )
+                send_email(user.email, subject, body)
+        finally:
+            db.close()
+
+        message = "If an account exists for that email, you'll receive a reset link shortly."
+
+    return render_template_string(FORGOT_PASSWORD_HTML, message=message)
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    token = (request.args.get("token") or "").strip()
+    if not token:
+        return render_template_string(RESET_PASSWORD_HTML, message="Invalid link.", error=True, valid=False)
+
+    db = get_db()
+    user = None
+    try:
+        user = db.query(User).filter(User.reset_token == token).first()
+    finally:
+        pass
+
+    now = datetime.datetime.utcnow()
+    valid = bool(user and user.reset_expires_at and user.reset_expires_at > now)
+
+    message = None
+    error = False
+
+    if request.method == "POST" and valid:
+        password = (request.form.get("password") or "").strip()
+        if not password:
+            message = "Password cannot be empty."
+            error = True
+        else:
+            try:
+                user.password_hash = generate_password_hash(password)
+                user.reset_token = None
+                user.reset_expires_at = None
+                db.commit()
+                message = "Your password has been updated. You can now log in."
+                error = False
+                valid = False  # hide the form after success
+            finally:
+                db.close()
+                return render_template_string(
+                    RESET_PASSWORD_HTML,
+                    message=message,
+                    error=error,
+                    valid=False,
+                )
+
+    if db:
+        db.close()
+
+    if not valid and message is None:
+        message = "This reset link is invalid or has expired."
+        error = True
+
+    return render_template_string(RESET_PASSWORD_HTML, message=message, error=error, valid=valid)
+
+
+@app.route("/dashboard")
+@business_required
+def dashboard():
+    user, role, business_id = get_current_user()
+    db = get_db()
+    try:
+        biz = db.query(Business).filter(Business.business_id == business_id).first()
+        leads = (
+            db.query(Lead)
+            .filter(Lead.business_id == business_id)
+            .order_by(Lead.created_at.desc())
+            .limit(50)
+            .all()
+        )
+    finally:
+        db.close()
+
+    public_url = request.url_root.rstrip("/")
+    return render_template_string(DASHBOARD_HTML, biz=biz, leads=leads, public_url=public_url)
+
+
 @app.route("/admin/businesses")
 @admin_required
 def admin_businesses():
@@ -1357,11 +1456,7 @@ def admin_businesses():
         users = db.query(User).filter(User.role == "business").all()
         rows = []
         for u in users:
-            biz = (
-                db.query(Business)
-                .filter(Business.business_id == u.business_id)
-                .first()
-            )
+            biz = db.query(Business).filter(Business.business_id == u.business_id).first()
             if biz:
                 rows.append({"user": u, "business": biz})
         rows.sort(key=lambda r: (r["user"].is_active, r["business"].name))
@@ -1381,7 +1476,6 @@ def admin_approve(user_id):
         u.is_active = True
         db.commit()
 
-        # send approval email
         subject = "Your Cardholics AI account is approved"
         body = (
             "Your Cardholics AI account has been approved.\n\n"
@@ -1407,9 +1501,6 @@ def admin_deactivate(user_id):
     finally:
         db.close()
     return redirect(url_for("admin_businesses"))
-
-
-# -------- Chat + leads --------
 
 
 @app.route("/chat", methods=["POST"])
@@ -1531,7 +1622,6 @@ def lead():
         db.add(lead_obj)
         db.commit()
 
-        # notify owner
         subject = f"New lead from {biz.name}"
         body = (
             f"You received a new lead from your Cardholics AI widget.\n\n"
@@ -1541,8 +1631,6 @@ def lead():
             f"Message:\n{message}\n\n"
         )
         if biz.contact:
-            # try to extract an email-like thing from contact
-            # very naive: pick first token containing "@"
             contact_email = None
             for token in biz.contact.replace(",", " ").split():
                 if "@" in token:
